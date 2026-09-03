@@ -227,9 +227,9 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'user';
                         <span class="material-symbols-outlined text-secondary">receipt_long</span>
                     </div>
                     <div>
-                        <p class="text-headline-md font-headline-md">1,284</p>
+                        <p class="text-headline-md font-headline-md" id="stat-active-po">-</p>
                         <p class="text-label-sm text-tertiary-fixed-dim flex items-center gap-xs">
-                            <span class="material-symbols-outlined text-[14px]">trending_up</span> 12% dari bulan lalu
+                            <span class="material-symbols-outlined text-[14px]">trending_up</span> <span id="stat-active-label">Memuat data...</span>
                         </p>
                     </div>
                 </div>
@@ -239,7 +239,7 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'user';
                         <span class="material-symbols-outlined text-error">signature</span>
                     </div>
                     <div>
-                        <p class="text-headline-md font-headline-md">42</p>
+                        <p class="text-headline-md font-headline-md" id="stat-pending-signed">-</p>
                         <p class="text-label-sm text-on-surface-variant italic">Menunggu persetujuan</p>
                     </div>
                 </div>
@@ -249,18 +249,18 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'user';
                         <span class="material-symbols-outlined text-tertiary-fixed-dim">payments</span>
                     </div>
                     <div>
-                        <p class="text-headline-md font-headline-md">Rp 2,4M</p>
-                        <p class="text-label-sm text-on-surface-variant">FY 2024 Q3</p>
+                        <p class="text-headline-md font-headline-md" id="stat-total-value">-</p>
+                        <p class="text-label-sm text-on-surface-variant">Nilai total PO aktif</p>
                     </div>
                 </div>
                 <div class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between h-32 hover:border-secondary/30 transition-colors">
                     <div class="flex justify-between items-start">
-                        <span class="text-label-sm uppercase text-on-surface-variant tracking-wider">Vendors</span>
+                        <span class="text-label-sm uppercase text-on-surface-variant tracking-wider">Total Vendors</span>
                         <span class="material-symbols-outlined text-secondary">group</span>
                     </div>
                     <div>
-                        <p class="text-headline-md font-headline-md">156</p>
-                        <p class="text-label-sm text-on-surface-variant flex items-center gap-xs">Mitra aktif</p>
+                        <p class="text-headline-md font-headline-md" id="stat-total-vendors">-</p>
+                        <p class="text-label-sm text-on-surface-variant flex items-center gap-xs">Mitra terdaftar</p>
                     </div>
                 </div>
             </div>
@@ -290,24 +290,10 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'user';
                 </div>
                 <div class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm">
                     <h3 class="font-headline-sm text-headline-sm text-primary mb-md">Aktivitas Terakhir</h3>
-                    <div class="space-y-md">
-                        <div class="flex items-start gap-md">
-                            <div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0">
-                                <span class="material-symbols-outlined text-[18px] text-on-secondary-fixed-variant">check_circle</span>
-                            </div>
-                            <div>
-                                <p class="text-label-md text-on-surface">PO-2023-0891 ditandatangani oleh CFO</p>
-                                <p class="text-label-sm text-on-surface-variant">2 jam yang lalu</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-md">
-                            <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
-                                <span class="material-symbols-outlined text-[18px] text-on-primary-fixed-variant">note_add</span>
-                            </div>
-                            <div>
-                                <p class="text-label-md text-on-surface">Draft PO baru PO-2023-0896 dibuat</p>
-                                <p class="text-label-sm text-on-surface-variant">5 jam yang lalu • Oleh Admin</p>
-                            </div>
+                    <div class="space-y-md" id="recent-activity">
+                        <div class="text-center text-on-surface-variant py-4">
+                            <span class="material-symbols-outlined animate-spin text-secondary">refresh</span>
+                            <p class="text-body-sm mt-2">Memuat aktivitas...</p>
                         </div>
                     </div>
                 </div>
@@ -327,6 +313,79 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'user';
                 this.classList.remove('scale-[0.98]');
             });
         });
+
+        // Load dashboard stats
+        document.addEventListener('DOMContentLoaded', loadDashboardStats);
+
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('api/dashboard.php');
+                const result = await response.json();
+
+                if (result.success) {
+                    const stats = result.data.summary;
+                    
+                    document.getElementById('stat-active-po').textContent = stats.total_active_po.toLocaleString();
+                    document.getElementById('stat-active-label').textContent = 'PO aktif saat ini';
+                    
+                    document.getElementById('stat-pending-signed').textContent = stats.pending_signed.toLocaleString();
+                    
+                    document.getElementById('stat-total-value').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(stats.total_value);
+                    
+                    document.getElementById('stat-total-vendors').textContent = stats.total_vendors.toLocaleString();
+
+                    // Render recent activity
+                    renderRecentActivity(result.data.recent_activity);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        function renderRecentActivity(activities) {
+            const container = document.getElementById('recent-activity');
+            if (!container) return;
+
+            if (activities.length === 0) {
+                container.innerHTML = '<p class="text-center text-on-surface-variant py-4">Belum ada aktivitas</p>';
+                return;
+            }
+
+            const actionIcons = {
+                'created': 'note_add',
+                'updated': 'edit',
+                'status_changed': 'swap_horiz',
+                'attachment_uploaded': 'upload_file'
+            };
+
+            container.innerHTML = activities.map(activity => {
+                const icon = actionIcons[activity.action] || 'info';
+                const timeAgo = getTimeAgo(activity.created_at);
+                return `
+                    <div class="flex items-start gap-md">
+                        <div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-[18px] text-on-secondary-fixed-variant">${icon}</span>
+                        </div>
+                        <div>
+                            <p class="text-label-md text-on-surface">${activity.description || activity.action}</p>
+                            <p class="text-label-sm text-on-surface-variant">${timeAgo} • Oleh ${activity.user_name || 'System'}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'Baru saja';
+            if (diff < 3600) return Math.floor(diff / 60) + ' menit yang lalu';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' jam yang lalu';
+            if (diff < 604800) return Math.floor(diff / 86400) + ' hari yang lalu';
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
     </script>
 </body>
 </html>

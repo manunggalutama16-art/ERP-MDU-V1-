@@ -456,7 +456,7 @@ $defaultUnits = ['Pcs', 'Box', 'Lot', 'Roll'];
                             <h4 class="font-label-md text-label-md text-primary uppercase tracking-wider">Catatan Tambahan</h4>
                         </div>
                         <div class="p-lg">
-                            <textarea class="w-full px-md py-md border border-outline-variant rounded bg-surface focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all min-h-[100px]" placeholder="Tambahkan catatan internal atau instruksi khusus untuk vendor..."><?php echo $editPO ? htmlspecialchars($editPO['notes']) : ''; ?></textarea>
+                            <textarea id="notes" class="w-full px-md py-md border border-outline-variant rounded bg-surface focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all min-h-[100px]" placeholder="Tambahkan catatan internal atau instruksi khusus untuk vendor..."><?php echo $editPO ? htmlspecialchars($editPO['notes']) : ''; ?></textarea>
                         </div>
                     </div>
 
@@ -634,7 +634,7 @@ $defaultUnits = ['Pcs', 'Box', 'Lot', 'Roll'];
                 ppn_type: ppn_type,
                 quotation_attached: quotation === 'yes',
                 approved: approval_status === 'yes',
-                notes: document.querySelector('textarea').value,
+                notes: document.getElementById('notes').value,
                 items: items
             };
         }

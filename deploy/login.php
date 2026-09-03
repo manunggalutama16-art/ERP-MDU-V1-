@@ -12,30 +12,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Email dan password harus diisi';
     } else {
-        $data = [
-            'action' => 'login',
-            'email' => $email,
-            'password' => $password
-        ];
+        // Direct database authentication (no curl needed)
+        $conn = getConnection();
+        $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1");
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
         
-        $ch = curl_init(APP_URL . '/api/auth.php');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_COOKIEJAR, sys_get_temp_dir() . '/cookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEFILE, sys_get_temp_dir() . '/cookie.txt');
-        
-        $response = curl_exec($ch);
-        curl_close($ch);
-        
-        $result = json_decode($response, true);
-        
-        if ($result && $result['success']) {
-            header('Location: dashboard.php');
-            exit();
+        if ($result->num_rows === 0) {
+            $error = 'Email atau password salah';
         } else {
-            $error = isset($result['message']) ? $result['message'] : 'Login gagal';
+            $user = $result->fetch_assoc();
+            
+            if (password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                
+                header('Location: dashboard.php');
+                exit();
+            } else {
+                $error = 'Email atau password salah';
+            }
         }
     }
 }
