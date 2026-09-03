@@ -39,70 +39,46 @@ function getVendors($conn) {
     $offset = ($page - 1) * $limit;
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     
-    // Build query
     $where = '';
     $params = [];
-    $types = '';
     
     if (!empty($search)) {
-        $where = "WHERE name LIKE ? OR npwp LIKE ? OR email LIKE ? OR contact_person LIKE ?";
-        $searchTerm = "%{$search}%";
-        $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
-        $types = 'ssss';
+        $where = "WHERE name ILIKE $1 OR npwp ILIKE $1 OR email ILIKE $1 OR contact_person ILIKE $1";
+        $params[] = "%{$search}%";
     }
     
     // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM vendors {$where}";
-    $stmt = $conn->prepare($countQuery);
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    $stmt->execute();
-    $total = $stmt->get_result()->fetch_assoc()['total'];
+    $result = pg_query_params($conn, $countQuery, $params);
+    $total = pg_fetch_assoc($result)['total'];
     
     // Get data
-    $query = "SELECT * FROM vendors {$where} ORDER BY id DESC LIMIT ? OFFSET ?";
-    $stmt = $conn->prepare($query);
+    $query = "SELECT * FROM vendors {$where} ORDER BY id DESC LIMIT $".(count($params)+1)." OFFSET $".(count($params)+2);
+    $params[] = $limit;
+    $params[] = $offset;
     
-    if (!empty($params)) {
-        $params[] = $limit;
-        $params[] = $offset;
-        $types .= 'ii';
-        $stmt->bind_param($types, ...$params);
-    } else {
-        $stmt->bind_param('ii', $limit, $offset);
-    }
-    
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $vendors = [];
-    
-    while ($row = $result->fetch_assoc()) {
-        $vendors[] = $row;
-    }
+    $result = pg_query_params($conn, $query, $params);
+    $vendors = pg_fetch_all_assoc($result);
     
     jsonResponse(true, 'Vendors retrieved', [
         'vendors' => $vendors,
         'pagination' => [
             'page' => $page,
             'limit' => $limit,
-            'total' => $total,
+            'total' => (int)$total,
             'total_pages' => ceil($total / $limit)
         ]
     ]);
 }
 
 function getVendor($conn, $id) {
-    $stmt = $conn->prepare("SELECT * FROM vendors WHERE id = ? LIMIT 1");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $result = pg_query_params($conn, "SELECT * FROM vendors WHERE id = $1 LIMIT 1", [$id]);
     
-    if ($result->num_rows === 0) {
+    if (pg_num_rows($result) === 0) {
         jsonResponse(false, 'Vendor not found', null, 404);
     }
     
-    $vendor = $result->fetch_assoc();
+    $vendor = pg_fetch_assoc($result);
     jsonResponse(true, 'Vendor retrieved', $vendor);
 }
 
@@ -120,13 +96,16 @@ function createVendor($conn) {
         jsonResponse(false, 'Vendor name is required');
     }
     
-    $stmt = $conn->prepare("INSERT INTO vendors (name, address, npwp, phone, contact_person, email) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param('ssssss', $name, $address, $npwp, $phone, $contact_person, $email);
+    $result = pg_query_params($conn,
+        "INSERT INTO vendors (name, address, npwp, phone, contact_person, email) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+        [$name, $address, $npwp, $phone, $contact_person, $email]
+    );
     
-    if ($stmt->execute()) {
-        jsonResponse(true, 'Vendor created successfully', ['id' => $stmt->insert_id]);
+    if ($result) {
+        $id = pg_fetch_assoc($result)['id'];
+        jsonResponse(true, 'Vendor created successfully', ['id' => $id]);
     } else {
-        jsonResponse(false, 'Failed to create vendor: ' . $conn->error);
+        jsonResponse(false, 'Failed to create vendor');
     }
 }
 
@@ -149,13 +128,15 @@ function updateVendor($conn) {
         jsonResponse(false, 'Vendor name is required');
     }
     
-    $stmt = $conn->prepare("UPDATE vendors SET name=?, address=?, npwp=?, phone=?, contact_person=?, email=? WHERE id=?");
-    $stmt->bind_param('ssssssi', $name, $address, $npwp, $phone, $contact_person, $email, $id);
+    $result = pg_query_params($conn,
+        "UPDATE vendors SET name=$1, address=$2, npwp=$3, phone=$4, contact_person=$5, email=$6 WHERE id=$7",
+        [$name, $address, $npwp, $phone, $contact_person, $email, $id]
+    );
     
-    if ($stmt->execute()) {
+    if ($result) {
         jsonResponse(true, 'Vendor updated successfully');
     } else {
-        jsonResponse(false, 'Failed to update vendor: ' . $conn->error);
+        jsonResponse(false, 'Failed to update vendor');
     }
 }
 
@@ -168,12 +149,11 @@ function deleteVendor($conn) {
     
     $id = (int)$input['id'];
     
-    $stmt = $conn->prepare("DELETE FROM vendors WHERE id = ?");
-    $stmt->bind_param('i', $id);
+    $result = pg_query_params($conn, "DELETE FROM vendors WHERE id = $1", [$id]);
     
-    if ($stmt->execute()) {
+    if ($result) {
         jsonResponse(true, 'Vendor deleted successfully');
     } else {
-        jsonResponse(false, 'Failed to delete vendor: ' . $conn->error);
+        jsonResponse(false, 'Failed to delete vendor');
     }
 }

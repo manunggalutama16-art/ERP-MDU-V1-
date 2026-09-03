@@ -1,10 +1,10 @@
 # ERP Procurement MDU - .htaccess
-# Deployment Configuration for Niagahoster
+# Deployment Configuration for Rumahweb with Supabase Database
 
 # Enable Rewrite Engine
 RewriteEngine On
 
-# Set Base Directory (ubah sesuai folder deployment Anda di Niagahoster)
+# Set Base Directory (ubah sesuai folder deployment Anda di Rumahweb)
 # Jika deploy di root domain, biarkan kosong. Jika di subfolder, set misal: /erp
 # RewriteBase /erp
 
@@ -35,7 +35,6 @@ RewriteEngine On
 </FilesMatch>
 
 # Block direct access to PHP files inside the uploads directory
-# (uses mod_rewrite because <Directory> is not allowed inside .htaccess)
 RewriteRule ^uploads/.*\.php$ - [F,L]
 
 # URL Rewriting for clean URLs

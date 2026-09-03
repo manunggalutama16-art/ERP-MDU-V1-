@@ -21,35 +21,33 @@ function getReportData() {
     $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
     $status = isset($_GET['status']) ? $_GET['status'] : '';
     
-    $where = "WHERE po.created_at BETWEEN ? AND ?";
+    $where = "WHERE po.created_at >= $1 AND po.created_at <= $2";
     $params = [$start_date . ' 00:00:00', $end_date . ' 23:59:59'];
-    $types = 'ss';
+    $paramIndex = 3;
     
     if ($project_id > 0) {
-        $where .= " AND po.project_id = ?";
+        $where .= " AND po.project_id = ${$paramIndex}";
         $params[] = $project_id;
-        $types .= 'i';
+        $paramIndex++;
     }
     
     if (!empty($status)) {
-        $where .= " AND po.status = ?";
+        $where .= " AND po.status = ${$paramIndex}";
         $params[] = $status;
-        $types .= 's';
+        $paramIndex++;
     }
     
     // Summary stats
     $summaryQuery = "SELECT 
                         COUNT(*) as total_po,
-                        SUM(po.grand_total) as total_value,
+                        COALESCE(SUM(po.grand_total), 0) as total_value,
                         SUM(CASE WHEN po.status = 'Signed' THEN 1 ELSE 0 END) as signed_count,
                         SUM(CASE WHEN po.status = 'Draft' THEN 1 ELSE 0 END) as draft_count,
                         COUNT(DISTINCT po.vendor_id) as active_vendors
                     FROM purchase_orders po {$where}";
     
-    $stmt = $conn->prepare($summaryQuery);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $summary = $stmt->get_result()->fetch_assoc();
+    $result = pg_query_params($conn, $summaryQuery, $params);
+    $summary = pg_fetch_assoc($result);
     
     // Detailed data
     $detailQuery = "SELECT po.*, v.name as vendor_name, p.name as project_name, p.code as project_code
@@ -59,22 +57,12 @@ function getReportData() {
                     {$where}
                     ORDER BY po.created_at DESC";
     
-    $stmt = $conn->prepare($detailQuery);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $details = [];
-    
-    while ($row = $result->fetch_assoc()) {
-        $details[] = $row;
-    }
+    $result = pg_query_params($conn, $detailQuery, $params);
+    $details = pg_fetch_all_assoc($result);
     
     // Projects for filter
-    $projectsStmt = $conn->query("SELECT id, code, name FROM projects ORDER BY name ASC");
-    $projects = [];
-    while ($row = $projectsStmt->fetch_assoc()) {
-        $projects[] = $row;
-    }
+    $projectsResult = pg_query($conn, "SELECT id, code, name FROM projects ORDER BY name ASC");
+    $projects = pg_fetch_all_assoc($projectsResult);
     
     jsonResponse(true, 'Report data retrieved', [
         'summary' => $summary,

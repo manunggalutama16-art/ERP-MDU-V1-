@@ -44,16 +44,21 @@ function login($input) {
         jsonResponse(false, 'Email and password are required');
     }
     
-    $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Rate limiting
+    if (!checkRateLimit($email)) {
+        jsonResponse(false, 'Too many login attempts. Please try again later.', null, 429);
+    }
     
-    if ($result->num_rows === 0) {
+    $result = pg_query_params($conn,
+        "SELECT id, name, email, password, role FROM users WHERE email = $1 LIMIT 1",
+        [$email]
+    );
+    
+    if (!$result || pg_num_rows($result) === 0) {
         jsonResponse(false, 'Invalid email or password', null, 401);
     }
     
-    $user = $result->fetch_assoc();
+    $user = pg_fetch_assoc($result);
     
     if (password_verify($password, $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
@@ -61,7 +66,9 @@ function login($input) {
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_role'] = $user['role'];
         
-        // Remove password from response
+        // Reset rate limit on successful login
+        unset($_SESSION['rate_limit_' . $email]);
+        
         unset($user['password']);
         
         jsonResponse(true, 'Login successful', [

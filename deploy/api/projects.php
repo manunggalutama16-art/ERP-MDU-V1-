@@ -42,71 +42,52 @@ function getProjects($conn) {
     
     $where = '';
     $params = [];
-    $types = '';
+    $paramIndex = 1;
     
     if (!empty($search)) {
-        $where = "WHERE code LIKE ? OR name LIKE ? OR client LIKE ? OR pic LIKE ?";
-        $searchTerm = "%{$search}%";
-        $params = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
-        $types = 'ssss';
+        $where = "WHERE (code ILIKE ${$paramIndex} OR name ILIKE ${$paramIndex} OR client ILIKE ${$paramIndex} OR pic ILIKE ${$paramIndex})";
+        $params[] = "%{$search}%";
+        $paramIndex++;
     }
     
     if (!empty($status)) {
-        $where .= empty($where) ? 'WHERE status = ?' : ' AND status = ?';
+        $where .= empty($where) ? "WHERE status = ${$paramIndex}" : " AND status = ${$paramIndex}";
         $params[] = $status;
-        $types .= 's';
+        $paramIndex++;
     }
     
+    // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM projects {$where}";
-    $stmt = $conn->prepare($countQuery);
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    $stmt->execute();
-    $total = $stmt->get_result()->fetch_assoc()['total'];
+    $result = pg_query_params($conn, $countQuery, $params);
+    $total = pg_fetch_assoc($result)['total'];
     
-    $query = "SELECT * FROM projects {$where} ORDER BY id DESC LIMIT ? OFFSET ?";
-    $stmt = $conn->prepare($query);
+    // Get data
+    $query = "SELECT * FROM projects {$where} ORDER BY id DESC LIMIT ${$paramIndex} OFFSET ${$paramIndex}";
+    $params[] = $limit;
+    $params[] = $offset;
     
-    if (!empty($params)) {
-        $params[] = $limit;
-        $params[] = $offset;
-        $types .= 'ii';
-        $stmt->bind_param($types, ...$params);
-    } else {
-        $stmt->bind_param('ii', $limit, $offset);
-    }
-    
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $projects = [];
-    
-    while ($row = $result->fetch_assoc()) {
-        $projects[] = $row;
-    }
+    $result = pg_query_params($conn, $query, $params);
+    $projects = pg_fetch_all_assoc($result);
     
     jsonResponse(true, 'Projects retrieved', [
         'projects' => $projects,
         'pagination' => [
             'page' => $page,
             'limit' => $limit,
-            'total' => $total,
+            'total' => (int)$total,
             'total_pages' => ceil($total / $limit)
         ]
     ]);
 }
 
 function getProject($conn, $id) {
-    $stmt = $conn->prepare("SELECT * FROM projects WHERE id = ? LIMIT 1");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $result = pg_query_params($conn, "SELECT * FROM projects WHERE id = $1 LIMIT 1", [$id]);
     
-    if ($result->num_rows === 0) {
+    if (pg_num_rows($result) === 0) {
         jsonResponse(false, 'Project not found', null, 404);
     }
     
-    $project = $result->fetch_assoc();
+    $project = pg_fetch_assoc($result);
     jsonResponse(true, 'Project retrieved', $project);
 }
 
@@ -126,13 +107,16 @@ function createProject($conn) {
         jsonResponse(false, 'Project code and name are required');
     }
     
-    $stmt = $conn->prepare("INSERT INTO projects (code, name, location, client, pic, value_before_ppn, value_inc_ppn, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param('sssssdds', $code, $name, $location, $client, $pic, $value_before_ppn, $value_inc_ppn, $status);
+    $result = pg_query_params($conn,
+        "INSERT INTO projects (code, name, location, client, pic, value_before_ppn, value_inc_ppn, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+        [$code, $name, $location, $client, $pic, $value_before_ppn, $value_inc_ppn, $status]
+    );
     
-    if ($stmt->execute()) {
-        jsonResponse(true, 'Project created successfully', ['id' => $stmt->insert_id]);
+    if ($result) {
+        $id = pg_fetch_assoc($result)['id'];
+        jsonResponse(true, 'Project created successfully', ['id' => $id]);
     } else {
-        jsonResponse(false, 'Failed to create project: ' . $conn->error);
+        jsonResponse(false, 'Failed to create project');
     }
 }
 
@@ -153,13 +137,15 @@ function updateProject($conn) {
     $value_inc_ppn = isset($input['value_inc_ppn']) ? (float)$input['value_inc_ppn'] : 0;
     $status = isset($input['status']) ? sanitize($input['status']) : 'PENDING';
     
-    $stmt = $conn->prepare("UPDATE projects SET code=?, name=?, location=?, client=?, pic=?, value_before_ppn=?, value_inc_ppn=?, status=? WHERE id=?");
-    $stmt->bind_param('sssssddsi', $code, $name, $location, $client, $pic, $value_before_ppn, $value_inc_ppn, $status, $id);
+    $result = pg_query_params($conn,
+        "UPDATE projects SET code=$1, name=$2, location=$3, client=$4, pic=$5, value_before_ppn=$6, value_inc_ppn=$7, status=$8 WHERE id=$9",
+        [$code, $name, $location, $client, $pic, $value_before_ppn, $value_inc_ppn, $status, $id]
+    );
     
-    if ($stmt->execute()) {
+    if ($result) {
         jsonResponse(true, 'Project updated successfully');
     } else {
-        jsonResponse(false, 'Failed to update project: ' . $conn->error);
+        jsonResponse(false, 'Failed to update project');
     }
 }
 
@@ -172,12 +158,11 @@ function deleteProject($conn) {
     
     $id = (int)$input['id'];
     
-    $stmt = $conn->prepare("DELETE FROM projects WHERE id = ?");
-    $stmt->bind_param('i', $id);
+    $result = pg_query_params($conn, "DELETE FROM projects WHERE id = $1", [$id]);
     
-    if ($stmt->execute()) {
+    if ($result) {
         jsonResponse(true, 'Project deleted successfully');
     } else {
-        jsonResponse(false, 'Failed to delete project: ' . $conn->error);
+        jsonResponse(false, 'Failed to delete project');
     }
 }

@@ -18,13 +18,8 @@ switch ($method) {
 }
 
 function uploadFileAPI() {
-    // Type may arrive as a multipart field (po_detail.php) or as a query param (settings.php)
     $type = isset($_POST['type']) ? sanitize($_POST['type']) : (isset($_GET['type']) ? sanitize($_GET['type']) : '');
 
-    // Map each upload type to its storage directory and, for PO attachments,
-    // the correct po_attachments.type ENUM value ('invoice_supplier', 'quotation',
-    // 'wet_signature', 'supporting'). 'npwp', 'signatures' and 'logo' are special
-    // types that update a record instead of creating a PO attachment.
     $typeMap = [
         'invoice_supplier' => ['dir' => 'invoices',   'attachment' => 'invoice_supplier'],
         'invoices'         => ['dir' => 'invoices',   'attachment' => 'invoice_supplier'],
@@ -57,37 +52,39 @@ function uploadFileAPI() {
     $conn = getConnection();
 
     if ($attachmentType) {
-        // PO attachment - po_id is required
         if (!isset($_POST['po_id'])) {
             jsonResponse(false, 'PO ID is required');
         }
         $po_id = (int)$_POST['po_id'];
-
-        $stmt = $conn->prepare("INSERT INTO po_attachments (po_id, type, file_name, file_path, file_size, uploaded_by) VALUES (?, ?, ?, ?, ?, ?)");
         $file_size = $_FILES['file']['size'];
         $uploaded_by = $_SESSION['user_id'];
-        $stmt->bind_param('isssii', $po_id, $attachmentType, $result['file_name'], $result['file_path'], $file_size, $uploaded_by);
-        $stmt->execute();
+
+        pg_query_params($conn,
+            "INSERT INTO po_attachments (po_id, type, file_name, file_path, file_size, uploaded_by) VALUES ($1, $2, $3, $4, $5, $6)",
+            [$po_id, $attachmentType, $result['file_name'], $result['file_path'], $file_size, $uploaded_by]
+        );
 
         logPoActivity($conn, $po_id, 'attachment_uploaded', 'File dilampirkan: ' . $result['file_name']);
     } else if ($type === 'npwp') {
-        // Update vendor NPWP file
         $vendor_id = isset($_POST['vendor_id']) ? (int)$_POST['vendor_id'] : 0;
         if ($vendor_id > 0) {
-            $stmt = $conn->prepare("UPDATE vendors SET npwp_file = ? WHERE id = ?");
-            $stmt->bind_param('si', $result['file_path'], $vendor_id);
-            $stmt->execute();
+            pg_query_params($conn,
+                "UPDATE vendors SET npwp_file = $1 WHERE id = $2",
+                [$result['file_path'], $vendor_id]
+            );
         }
     } else if ($type === 'signatures') {
-        // Update digital signature setting (row may not exist yet)
-        $stmt = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('signature_file', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        $stmt->bind_param('s', $result['file_path']);
-        $stmt->execute();
+        pg_query_params($conn,
+            "INSERT INTO system_settings (setting_key, setting_value) VALUES ('signature_file', $1) 
+             ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value",
+            [$result['file_path']]
+        );
     } else if ($type === 'logo') {
-        // Update company logo setting (row may not exist yet)
-        $stmt = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('logo_file', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        $stmt->bind_param('s', $result['file_path']);
-        $stmt->execute();
+        pg_query_params($conn,
+            "INSERT INTO system_settings (setting_key, setting_value) VALUES ('logo_file', $1) 
+             ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value",
+            [$result['file_path']]
+        );
     }
 
     jsonResponse(true, 'File uploaded successfully', [

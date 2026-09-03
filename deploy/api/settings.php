@@ -20,10 +20,10 @@ switch ($method) {
 }
 
 function getSettings($conn) {
-    $result = $conn->query("SELECT * FROM system_settings");
+    $result = pg_query($conn, "SELECT * FROM system_settings");
     $settings = [];
     
-    while ($row = $result->fetch_assoc()) {
+    while ($row = pg_fetch_assoc($result)) {
         $settings[$row['setting_key']] = $row['setting_value'];
     }
     
@@ -37,23 +37,22 @@ function updateSettings($conn) {
         jsonResponse(false, 'Invalid input data');
     }
     
-    $conn->begin_transaction();
+    pg_query($conn, 'BEGIN');
     
     try {
         foreach ($input as $key => $value) {
-            $stmt = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
-            $stmt->bind_param('sss', $key, $value, $value);
-            
-            if (!$stmt->execute()) {
-                throw new Exception('Failed to update setting: ' . $key);
-            }
+            pg_query_params($conn,
+                "INSERT INTO system_settings (setting_key, setting_value) VALUES ($1, $2) 
+                 ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value",
+                [$key, $value]
+            );
         }
         
-        $conn->commit();
+        pg_query($conn, 'COMMIT');
         jsonResponse(true, 'Settings updated successfully');
         
     } catch (Exception $e) {
-        $conn->rollback();
+        pg_query($conn, 'ROLLBACK');
         jsonResponse(false, 'Failed to update settings: ' . $e->getMessage());
     }
 }

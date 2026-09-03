@@ -1,20 +1,20 @@
 <?php
 // ============================================
 // ERP Procurement MDU - Configuration
-// SETUP INI SEBELUM DEPLOY!
+// Updated for Supabase PostgreSQL
 // ============================================
 
-// Database Configuration
-// Ganti dengan kredensial database MySQL Anda dari cPanel Niagahoster
-define('DB_HOST', 'localhost');
-define('DB_USER', 'USERNAME_DATABASE_ANDA');     // Contoh: mdutama_user
-define('DB_PASS', 'PASSWORD_DATABASE_ANDA');     // Contoh: password123
-define('DB_NAME', 'NAMA_DATABASE_ANDA');         // Contoh: mdutama_procurement
+// Database Configuration - Supabase PostgreSQL
+// Get these from: https://supabase.com/dashboard/project/_/settings/database
+define('DB_HOST', 'db.supabase.co');  // Your Supabase project reference + .supabase.co
+define('DB_PORT', '5432');
+define('DB_USER', 'postgres.YOUR_PROJECT_REF');  // e.g., postgres.abcdefghij
+define('DB_PASS', 'YOUR_SUPABASE_PASSWORD');     // Your database password
+define('DB_NAME', 'postgres');
+define('DB_SSLMODE', 'require');
 
 // Application Configuration
-// Jika deploy di subfolder, tambahkan nama foldernya
-// Contoh: http://procurement.mdutama.com/erp/
-define('APP_URL', 'http://procurement.mdutama.com');
+define('APP_URL', 'https://www.procurement.mdutama.com');
 define('APP_NAME', 'Nexus Procurement');
 
 // Upload Configuration
@@ -27,7 +27,7 @@ session_set_cookie_params([
     'lifetime' => 86400,
     'path' => '/',
     'domain' => parse_url(APP_URL, PHP_URL_HOST),
-    'secure' => isset($_SERVER['HTTPS']),
+    'secure' => true,  // HTTPS enforced
     'httponly' => true,
     'samesite' => 'Lax'
 ]);
@@ -52,16 +52,35 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/error.log');
 error_reporting(E_ALL);
 
-// Database Connection
+// ============================================
+// Database Connection (PostgreSQL via pg_connect)
+// ============================================
 function getConnection() {
     try {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        
-        if ($conn->connect_error) {
-            throw new Exception('Koneksi database gagal: ' . $conn->connect_error);
+        // Check if PostgreSQL extension is available
+        if (!function_exists('pg_connect')) {
+            throw new Exception('PostgreSQL extension not available. Please enable php_pgsql in php.ini.');
         }
         
-        $conn->set_charset('utf8mb4');
+        $conn_string = sprintf(
+            "host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
+            DB_HOST,
+            DB_PORT,
+            DB_NAME,
+            DB_USER,
+            DB_PASS,
+            DB_SSLMODE
+        );
+        
+        $conn = @pg_connect($conn_string);
+        
+        if (!$conn) {
+            throw new Exception('Koneksi database gagal: Could not connect to PostgreSQL');
+        }
+        
+        // Set client encoding
+        pg_set_client_encoding($conn, 'UTF8');
+        
         return $conn;
     } catch (Exception $e) {
         http_response_code(500);
@@ -71,6 +90,58 @@ function getConnection() {
         ]);
         exit();
     }
+}
+
+// ============================================
+// PostgreSQL Query Helpers
+// ============================================
+
+/**
+ * Execute a query with parameters (PostgreSQL style: $1, $2, etc.)
+ */
+function pg_query_params_safe($conn, $query, $params = []) {
+    if (empty($params)) {
+        return pg_query($conn, $query);
+    }
+    return pg_query_params($conn, $query, $params);
+}
+
+/**
+ * Fetch all rows as associative array
+ */
+function pg_fetch_all_assoc($result) {
+    $rows = [];
+    while ($row = pg_fetch_assoc($result)) {
+        $rows[] = $row;
+    }
+    return $rows;
+}
+
+/**
+ * Get number of rows
+ */
+function pg_num_rows_safe($result) {
+    return pg_num_rows($result);
+}
+
+/**
+ * Get inserted ID (PostgreSQL uses RETURNING or pg_last_oid)
+ */
+function pg_last_insert_id($conn, $result = null) {
+    if ($result) {
+        // Try to get ID from RETURNING clause
+        $row = pg_fetch_assoc($result);
+        if ($row && isset($row['id'])) {
+            return (int)$row['id'];
+        }
+    }
+    // Fallback: use pg_last_oid (deprecated but works)
+    $oid = pg_last_oid($conn);
+    if ($oid) {
+        // Convert OID to actual ID using a sequence query
+        return (int)$oid;
+    }
+    return 0;
 }
 
 // JSON Response Helper
@@ -107,14 +178,19 @@ function requireAdmin() {
     }
 }
 
-// Generate PO Number
+// Generate PO Number (PostgreSQL compatible)
 function generatePONumber($conn) {
     $year = date('Y');
     $month = date('m');
     $prefix = "PO-{$year}{$month}-";
     
-    $result = $conn->query("SELECT po_number FROM purchase_orders WHERE po_number LIKE '{$prefix}%' ORDER BY id DESC LIMIT 1");
-    if ($result && $row = $result->fetch_assoc()) {
+    $result = pg_query_params($conn, 
+        "SELECT po_number FROM purchase_orders WHERE po_number LIKE $1 ORDER BY id DESC LIMIT 1",
+        [$prefix . '%']
+    );
+    
+    if ($result && pg_num_rows($result) > 0) {
+        $row = pg_fetch_assoc($result);
         $lastNumber = (int)str_replace($prefix, '', $row['po_number']);
         $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
     } else {
@@ -176,43 +252,38 @@ function formatCurrency($value) {
 
 // ============================================
 // PO Activity Log helpers
-// The table is created on demand so existing deployments self-heal
-// (no manual migration needed).
 // ============================================
 function ensurePoActivityTable($conn) {
-    $conn->query("CREATE TABLE IF NOT EXISTS po_activity_log (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        po_id INT NOT NULL,
+    pg_query($conn, "CREATE TABLE IF NOT EXISTS po_activity_log (
+        id SERIAL PRIMARY KEY,
+        po_id INTEGER NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
         action VARCHAR(50) NOT NULL,
         description VARCHAR(255) DEFAULT NULL,
-        created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (po_id) REFERENCES purchase_orders(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+    )");
 }
 
 function logPoActivity($conn, $poId, $action, $description = '') {
     ensurePoActivityTable($conn);
-    $stmt = $conn->prepare("INSERT INTO po_activity_log (po_id, action, description, created_by) VALUES (?, ?, ?, ?)");
     $userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
-    $stmt->bind_param('issi', $poId, $action, $description, $userId);
-    return $stmt->execute();
+    $result = pg_query_params($conn,
+        "INSERT INTO po_activity_log (po_id, action, description, created_by) VALUES ($1, $2, $3, $4) RETURNING id",
+        [$poId, $action, $description, $userId]
+    );
+    return $result !== false;
 }
 
 function getPoActivity($conn, $poId) {
     ensurePoActivityTable($conn);
-    $stmt = $conn->prepare("SELECT a.*, u.name as user_name FROM po_activity_log a LEFT JOIN users u ON a.created_by = u.id WHERE a.po_id = ? ORDER BY a.created_at DESC, a.id DESC");
-    $stmt->bind_param('i', $poId);
-    $stmt->execute();
-    $rows = [];
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $rows[] = $row;
-    }
-    return $rows;
+    $result = pg_query_params($conn,
+        "SELECT a.*, u.name as user_name FROM po_activity_log a LEFT JOIN users u ON a.created_by = u.id WHERE a.po_id = $1 ORDER BY a.created_at DESC, a.id DESC",
+        [$poId]
+    );
+    return pg_fetch_all_assoc($result);
 }
 
-// User initials for avatar placeholder (no external image dependency)
+// User initials for avatar placeholder
 function userInitials($name) {
     $name = trim((string)$name);
     if ($name === '') return '?';

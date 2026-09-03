@@ -47,31 +47,28 @@ function getPOs($conn) {
     
     $where = '';
     $params = [];
-    $types = '';
+    $paramIndex = 1;
     
     if (!empty($search)) {
-        $where = "WHERE po.po_number LIKE ? OR v.name LIKE ? OR p.name LIKE ?";
-        $searchTerm = "%{$search}%";
-        $params = [$searchTerm, $searchTerm, $searchTerm];
-        $types = 'sss';
+        $where = "WHERE (po.po_number ILIKE ${$paramIndex} OR v.name ILIKE ${$paramIndex} OR p.name ILIKE ${$paramIndex})";
+        $params[] = "%{$search}%";
+        $paramIndex++;
     }
     
     if (!empty($status)) {
-        $where .= empty($where) ? 'WHERE po.status = ?' : ' AND po.status = ?';
+        $where .= empty($where) ? "WHERE po.status = ${$paramIndex}" : " AND po.status = ${$paramIndex}";
         $params[] = $status;
-        $types .= 's';
+        $paramIndex++;
     }
     
+    // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM purchase_orders po 
                    LEFT JOIN vendors v ON po.vendor_id = v.id 
                    LEFT JOIN projects p ON po.project_id = p.id {$where}";
-    $stmt = $conn->prepare($countQuery);
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    $stmt->execute();
-    $total = $stmt->get_result()->fetch_assoc()['total'];
+    $result = pg_query_params($conn, $countQuery, $params);
+    $total = pg_fetch_assoc($result)['total'];
     
+    // Get data
     $query = "SELECT po.*, v.name as vendor_name, v.contact_person, v.phone, v.email as vendor_email,
                      p.name as project_name, p.code as project_code, p.location as project_location,
                      u.name as created_by_name
@@ -80,78 +77,51 @@ function getPOs($conn) {
               LEFT JOIN projects p ON po.project_id = p.id 
               LEFT JOIN users u ON po.created_by = u.id
               {$where} 
-              ORDER BY po.id DESC LIMIT ? OFFSET ?";
+              ORDER BY po.id DESC LIMIT ${$paramIndex} OFFSET ${$paramIndex}";
     
-    $stmt = $conn->prepare($query);
+    $params[] = $limit;
+    $params[] = $offset;
     
-    if (!empty($params)) {
-        $params[] = $limit;
-        $params[] = $offset;
-        $types .= 'ii';
-        $stmt->bind_param($types, ...$params);
-    } else {
-        $stmt->bind_param('ii', $limit, $offset);
-    }
-    
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $pos = [];
-    
-    while ($row = $result->fetch_assoc()) {
-        $pos[] = $row;
-    }
+    $result = pg_query_params($conn, $query, $params);
+    $pos = pg_fetch_all_assoc($result);
     
     jsonResponse(true, 'Purchase Orders retrieved', [
         'pos' => $pos,
         'pagination' => [
             'page' => $page,
             'limit' => $limit,
-            'total' => $total,
+            'total' => (int)$total,
             'total_pages' => ceil($total / $limit)
         ]
     ]);
 }
 
 function getPO($conn, $id) {
-    $stmt = $conn->prepare("SELECT po.*, v.name as vendor_name, v.address as vendor_address, v.npwp as vendor_npwp, v.contact_person, v.phone, v.email as vendor_email,
+    $result = pg_query_params($conn,
+        "SELECT po.*, v.name as vendor_name, v.address as vendor_address, v.npwp as vendor_npwp, v.contact_person, v.phone, v.email as vendor_email,
                                    p.name as project_name, p.code as project_code, p.location as project_location, p.client as project_client,
                                    u.name as created_by_name
                             FROM purchase_orders po 
                             LEFT JOIN vendors v ON po.vendor_id = v.id 
                             LEFT JOIN projects p ON po.project_id = p.id 
                             LEFT JOIN users u ON po.created_by = u.id
-                            WHERE po.id = ? LIMIT 1");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+                            WHERE po.id = $1 LIMIT 1",
+        [$id]
+    );
     
-    if ($result->num_rows === 0) {
+    if (pg_num_rows($result) === 0) {
         jsonResponse(false, 'Purchase Order not found', null, 404);
     }
     
-    $po = $result->fetch_assoc();
+    $po = pg_fetch_assoc($result);
     
     // Get items
-    $itemsStmt = $conn->prepare("SELECT * FROM po_items WHERE po_id = ? ORDER BY sort_order ASC, id ASC");
-    $itemsStmt->bind_param('i', $id);
-    $itemsStmt->execute();
-    $itemsResult = $itemsStmt->get_result();
-    $po['items'] = [];
-    
-    while ($item = $itemsResult->fetch_assoc()) {
-        $po['items'][] = $item;
-    }
+    $itemsResult = pg_query_params($conn, "SELECT * FROM po_items WHERE po_id = $1 ORDER BY sort_order ASC, id ASC", [$id]);
+    $po['items'] = pg_fetch_all_assoc($itemsResult);
     
     // Get attachments
-    $attStmt = $conn->prepare("SELECT * FROM po_attachments WHERE po_id = ?");
-    $attStmt->bind_param('i', $id);
-    $attStmt->execute();
-    $attResult = $attStmt->get_result();
-    $po['attachments'] = [];
-    
-    while ($att = $attResult->fetch_assoc()) {
-        $po['attachments'][] = $att;
-    }
+    $attResult = pg_query_params($conn, "SELECT * FROM po_attachments WHERE po_id = $1", [$id]);
+    $po['attachments'] = pg_fetch_all_assoc($attResult);
     
     jsonResponse(true, 'Purchase Order retrieved', $po);
 }
@@ -165,14 +135,14 @@ function createPO($conn) {
     $top = isset($input['top']) ? sanitize($input['top']) : '';
     $delivery_location = isset($input['delivery_location']) ? sanitize($input['delivery_location']) : '';
     $status = isset($input['status']) ? sanitize($input['status']) : 'Draft';
-    $quotation_attached = isset($input['quotation_attached']) ? ($input['quotation_attached'] ? 1 : 0) : 0;
-    $approved = isset($input['approved']) ? ($input['approved'] ? 1 : 0) : 0;
+    $quotation_attached = isset($input['quotation_attached']) ? ($input['quotation_attached'] ? true : false) : false;
+    $approved = isset($input['approved']) ? ($input['approved'] ? true : false) : false;
     $notes = isset($input['notes']) ? sanitize($input['notes']) : '';
     $items = isset($input['items']) ? $input['items'] : [];
     $created_by = $_SESSION['user_id'];
     $ppn_type = isset($input['ppn_type']) ? sanitize($input['ppn_type']) : 'ppn';
     
-    $conn->begin_transaction();
+    pg_query($conn, 'BEGIN');
     
     try {
         // Calculate totals
@@ -181,19 +151,21 @@ function createPO($conn) {
             $subtotal += ((float)$item['quantity'] * (float)$item['price']);
         }
         
-        // PPN is optional; the form sends ppn_type = 'ppn' | 'non'
         $ppn_percent = ($ppn_type === 'non') ? 0.00 : 11.00;
         $ppn_amount = $subtotal * ($ppn_percent / 100);
         $grand_total = $subtotal + $ppn_amount;
         
-        $stmt = $conn->prepare("INSERT INTO purchase_orders (po_number, vendor_id, project_id, top, delivery_location, status, quotation_attached, approved, subtotal, ppn_percent, ppn_amount, grand_total, notes, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('siisssiiddddsi', $po_number, $vendor_id, $project_id, $top, $delivery_location, $status, $quotation_attached, $approved, $subtotal, $ppn_percent, $ppn_amount, $grand_total, $notes, $created_by);
+        $result = pg_query_params($conn,
+            "INSERT INTO purchase_orders (po_number, vendor_id, project_id, top, delivery_location, status, quotation_attached, approved, subtotal, ppn_percent, ppn_amount, grand_total, notes, created_by) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id",
+            [$po_number, $vendor_id, $project_id, $top, $delivery_location, $status, $quotation_attached, $approved, $subtotal, $ppn_percent, $ppn_amount, $grand_total, $notes, $created_by]
+        );
         
-        if (!$stmt->execute()) {
-            throw new Exception('Failed to create PO: ' . $conn->error);
+        if (!$result) {
+            throw new Exception('Failed to create PO');
         }
         
-        $po_id = $stmt->insert_id;
+        $po_id = pg_fetch_assoc($result)['id'];
         
         // Insert items
         $sort_order = 1;
@@ -203,17 +175,19 @@ function createPO($conn) {
             $unit = isset($item['unit']) ? sanitize($item['unit']) : 'Pcs';
             $price = (float)$item['price'];
             
-            $itemStmt = $conn->prepare("INSERT INTO po_items (po_id, item_name, quantity, unit, price, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
-            $itemStmt->bind_param('isdsdi', $po_id, $item_name, $quantity, $unit, $price, $sort_order);
+            $itemResult = pg_query_params($conn,
+                "INSERT INTO po_items (po_id, item_name, quantity, unit, price, sort_order) VALUES ($1, $2, $3, $4, $5, $6)",
+                [$po_id, $item_name, $quantity, $unit, $price, $sort_order]
+            );
             
-            if (!$itemStmt->execute()) {
-                throw new Exception('Failed to create PO item: ' . $conn->error);
+            if (!$itemResult) {
+                throw new Exception('Failed to create PO item');
             }
             
             $sort_order++;
         }
         
-        $conn->commit();
+        pg_query($conn, 'COMMIT');
         
         logPoActivity($conn, $po_id, 'created', 'PO ' . $po_number . ' dibuat');
         
@@ -223,7 +197,7 @@ function createPO($conn) {
         ]);
         
     } catch (Exception $e) {
-        $conn->rollback();
+        pg_query($conn, 'ROLLBACK');
         jsonResponse(false, 'Failed to create PO: ' . $e->getMessage());
     }
 }
@@ -240,10 +214,8 @@ function updatePO($conn, $input = null) {
     $id = (int)$input['id'];
     
     // Check if PO exists
-    $checkStmt = $conn->prepare("SELECT id FROM purchase_orders WHERE id = ? LIMIT 1");
-    $checkStmt->bind_param('i', $id);
-    $checkStmt->execute();
-    if ($checkStmt->get_result()->num_rows === 0) {
+    $checkResult = pg_query_params($conn, "SELECT id FROM purchase_orders WHERE id = $1 LIMIT 1", [$id]);
+    if (pg_num_rows($checkResult) === 0) {
         jsonResponse(false, 'Purchase Order not found', null, 404);
     }
     
@@ -252,13 +224,13 @@ function updatePO($conn, $input = null) {
     $top = isset($input['top']) ? sanitize($input['top']) : '';
     $delivery_location = isset($input['delivery_location']) ? sanitize($input['delivery_location']) : '';
     $status = isset($input['status']) ? sanitize($input['status']) : 'Draft';
-    $quotation_attached = isset($input['quotation_attached']) ? ($input['quotation_attached'] ? 1 : 0) : 0;
-    $approved = isset($input['approved']) ? ($input['approved'] ? 1 : 0) : 0;
+    $quotation_attached = isset($input['quotation_attached']) ? ($input['quotation_attached'] ? true : false) : false;
+    $approved = isset($input['approved']) ? ($input['approved'] ? true : false) : false;
     $notes = isset($input['notes']) ? sanitize($input['notes']) : '';
     $items = isset($input['items']) ? $input['items'] : [];
     $ppn_type = isset($input['ppn_type']) ? sanitize($input['ppn_type']) : 'ppn';
     
-    $conn->begin_transaction();
+    pg_query($conn, 'BEGIN');
     
     try {
         // Calculate totals
@@ -267,22 +239,21 @@ function updatePO($conn, $input = null) {
             $subtotal += ((float)$item['quantity'] * (float)$item['price']);
         }
         
-        // PPN is optional; the form sends ppn_type = 'ppn' | 'non'
         $ppn_percent = ($ppn_type === 'non') ? 0.00 : 11.00;
         $ppn_amount = $subtotal * ($ppn_percent / 100);
         $grand_total = $subtotal + $ppn_amount;
         
-        $stmt = $conn->prepare("UPDATE purchase_orders SET vendor_id=?, project_id=?, top=?, delivery_location=?, status=?, quotation_attached=?, approved=?, subtotal=?, ppn_percent=?, ppn_amount=?, grand_total=?, notes=? WHERE id=?");
-        $stmt->bind_param('iisssiiddddsi', $vendor_id, $project_id, $top, $delivery_location, $status, $quotation_attached, $approved, $subtotal, $ppn_percent, $ppn_amount, $grand_total, $notes, $id);
+        $result = pg_query_params($conn,
+            "UPDATE purchase_orders SET vendor_id=$1, project_id=$2, top=$3, delivery_location=$4, status=$5, quotation_attached=$6, approved=$7, subtotal=$8, ppn_percent=$9, ppn_amount=$10, grand_total=$11, notes=$12 WHERE id=$13",
+            [$vendor_id, $project_id, $top, $delivery_location, $status, $quotation_attached, $approved, $subtotal, $ppn_percent, $ppn_amount, $grand_total, $notes, $id]
+        );
         
-        if (!$stmt->execute()) {
-            throw new Exception('Failed to update PO: ' . $conn->error);
+        if (!$result) {
+            throw new Exception('Failed to update PO');
         }
         
         // Delete old items
-        $delStmt = $conn->prepare("DELETE FROM po_items WHERE po_id = ?");
-        $delStmt->bind_param('i', $id);
-        $delStmt->execute();
+        pg_query_params($conn, "DELETE FROM po_items WHERE po_id = $1", [$id]);
         
         // Insert new items
         $sort_order = 1;
@@ -292,24 +263,26 @@ function updatePO($conn, $input = null) {
             $unit = isset($item['unit']) ? sanitize($item['unit']) : 'Pcs';
             $price = (float)$item['price'];
             
-            $itemStmt = $conn->prepare("INSERT INTO po_items (po_id, item_name, quantity, unit, price, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
-            $itemStmt->bind_param('isdsdi', $id, $item_name, $quantity, $unit, $price, $sort_order);
+            $itemResult = pg_query_params($conn,
+                "INSERT INTO po_items (po_id, item_name, quantity, unit, price, sort_order) VALUES ($1, $2, $3, $4, $5, $6)",
+                [$id, $item_name, $quantity, $unit, $price, $sort_order]
+            );
             
-            if (!$itemStmt->execute()) {
-                throw new Exception('Failed to update PO item: ' . $conn->error);
+            if (!$itemResult) {
+                throw new Exception('Failed to update PO item');
             }
             
             $sort_order++;
         }
         
-        $conn->commit();
+        pg_query($conn, 'COMMIT');
         
         logPoActivity($conn, $id, 'updated', 'Detail PO diperbarui');
         
         jsonResponse(true, 'Purchase Order updated successfully');
         
     } catch (Exception $e) {
-        $conn->rollback();
+        pg_query($conn, 'ROLLBACK');
         jsonResponse(false, 'Failed to update PO: ' . $e->getMessage());
     }
 }
@@ -327,16 +300,13 @@ function updatePOStatus($conn, $input) {
         jsonResponse(false, 'Invalid status');
     }
 
-    $stmt = $conn->prepare("SELECT status FROM purchase_orders WHERE id = ? LIMIT 1");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $result = pg_query_params($conn, "SELECT status FROM purchase_orders WHERE id = $1 LIMIT 1", [$id]);
 
-    if ($result->num_rows === 0) {
+    if (pg_num_rows($result) === 0) {
         jsonResponse(false, 'Purchase Order not found', null, 404);
     }
 
-    $oldStatus = $result->fetch_assoc()['status'];
+    $oldStatus = pg_fetch_assoc($result)['status'];
 
     if ($oldStatus === $status) {
         jsonResponse(true, 'Status tidak berubah', [
@@ -345,11 +315,10 @@ function updatePOStatus($conn, $input) {
         ]);
     }
 
-    $updateStmt = $conn->prepare("UPDATE purchase_orders SET status = ? WHERE id = ?");
-    $updateStmt->bind_param('si', $status, $id);
+    $updateResult = pg_query_params($conn, "UPDATE purchase_orders SET status = $1 WHERE id = $2", [$status, $id]);
 
-    if (!$updateStmt->execute()) {
-        jsonResponse(false, 'Failed to update status: ' . $conn->error);
+    if (!$updateResult) {
+        jsonResponse(false, 'Failed to update status');
     }
 
     logPoActivity($conn, $id, 'status_changed', 'Status PO berubah: ' . $oldStatus . ' → ' . $status);
@@ -370,12 +339,11 @@ function deletePO($conn) {
     
     $id = (int)$input['id'];
     
-    $stmt = $conn->prepare("DELETE FROM purchase_orders WHERE id = ?");
-    $stmt->bind_param('i', $id);
+    $result = pg_query_params($conn, "DELETE FROM purchase_orders WHERE id = $1", [$id]);
     
-    if ($stmt->execute()) {
+    if ($result) {
         jsonResponse(true, 'Purchase Order deleted successfully');
     } else {
-        jsonResponse(false, 'Failed to delete PO: ' . $conn->error);
+        jsonResponse(false, 'Failed to delete PO');
     }
 }
