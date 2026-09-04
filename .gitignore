@@ -1,8 +1,1 @@
-# OS junk
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Runtime artifacts
-deploy/api/error.log
-_smoke/
+Nothing needs to be added to the .gitignore file based on the provided file changes. The modification of 'vercel.json' does not require any new ignore rules.

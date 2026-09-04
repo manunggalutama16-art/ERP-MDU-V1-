@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/purchase-orders", "destination": "/purchase-orders.html" },
+    { "source": "/create-po", "destination": "/create-po.html" },
+    { "source": "/po-detail", "destination": "/po-detail.html" },
+    { "source": "/preview-po", "destination": "/preview-po.html" },
+    { "source": "/projects", "destination": "/projects.html" },
+    { "source": "/vendors", "destination": "/vendors.html" },
+    { "source": "/reports", "destination": "/reports.html" },
+    { "source": "/settings", "destination": "/settings.html" }
+  ]
+}
