@@ -1,6 +1,1 @@
-node_modules
-dist
-.DS_Store
-*.log
-.env
-.env.local
+Nothing needs to be added to the .gitignore file based on the provided file changes. The modification of 'vercel.json' does not require any new ignore rules.

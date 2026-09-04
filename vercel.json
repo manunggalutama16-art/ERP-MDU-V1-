@@ -1,25 +1,12 @@
 {
-  "buildCommand": null,
-  "outputDirectory": "public",
-  "installCommand": null,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/index.html", "destination": "/index.html" },
     { "source": "/purchase-orders", "destination": "/purchase-orders.html" },
-    { "source": "/purchase-orders.html", "destination": "/purchase-orders.html" },
     { "source": "/create-po", "destination": "/create-po.html" },
-    { "source": "/create-po.html", "destination": "/create-po.html" },
     { "source": "/po-detail", "destination": "/po-detail.html" },
-    { "source": "/po-detail.html", "destination": "/po-detail.html" },
     { "source": "/preview-po", "destination": "/preview-po.html" },
-    { "source": "/preview-po.html", "destination": "/preview-po.html" },
     { "source": "/projects", "destination": "/projects.html" },
-    { "source": "/projects.html", "destination": "/projects.html" },
     { "source": "/vendors", "destination": "/vendors.html" },
-    { "source": "/vendors.html", "destination": "/vendors.html" },
     { "source": "/reports", "destination": "/reports.html" },
-    { "source": "/reports.html", "destination": "/reports.html" },
-    { "source": "/settings", "destination": "/settings.html" },
-    { "source": "/settings.html", "destination": "/settings.html" }
+    { "source": "/settings", "destination": "/settings.html" }
   ]
 }
