@@ -1,0 +1,475 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#2170e4",
+                        "on-tertiary-container": "#00a472",
+                        "inverse-on-surface": "#f3f0f2",
+                        "primary-fixed": "#d8e3fb",
+                        "secondary-fixed": "#d8e2ff",
+                        "surface-container-highest": "#e4e2e3",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "outline": "#75777d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#bcc7de",
+                        "on-surface": "#1b1b1d",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-secondary-fixed": "#001a42",
+                        "surface": "#fbf8fa",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#45474c",
+                        "surface-tint": "#545f73",
+                        "secondary": "#0058be",
+                        "primary": "#091426",
+                        "on-secondary-container": "#fefcff",
+                        "tertiary-container": "#00301e",
+                        "primary-fixed-dim": "#bcc7de",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed": "#002113",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#303032",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#1b1b1d",
+                        "on-primary-container": "#8590a6",
+                        "outline-variant": "#c5c6cd",
+                        "surface-dim": "#dcd9db",
+                        "tertiary": "#00190e",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#111c2d",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface-variant": "#e4e2e3",
+                        "surface-container-high": "#eae7e9",
+                        "primary-container": "#1e293b",
+                        "surface-container": "#f0edef",
+                        "surface-bright": "#fbf8fa",
+                        "background": "#fbf8fa",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004395",
+                        "surface-container-low": "#f5f3f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "unit": "4px",
+                        "lg": "24px",
+                        "sidebar-width": "260px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-tabular": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fbf8fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .sidebar-active-indicator {
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Side Navigation Bar -->
+<aside class="fixed h-screen w-sidebar-width left-0 top-0 bg-primary flex flex-col h-full overflow-y-auto z-50">
+<div class="px-md py-xl">
+<h1 class="text-headline-sm font-headline-sm text-on-primary">ProcureCorp</h1>
+<p class="text-on-primary-container font-label-md text-label-md opacity-70">Enterprise Suite</p>
+</div>
+<nav class="flex-grow">
+<!-- Dashboard -->
+<a class="flex items-center px-md py-md text-on-primary-container hover:bg-primary-container hover:text-on-primary transition-colors duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Master Data (Active) -->
+<a class="relative flex items-center px-md py-md bg-secondary-container text-on-secondary-container border-l-4 border-secondary-fixed transition-transform active:scale-[0.98] font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">database</span>
+<span>Master Data</span>
+</a>
+<!-- Purchase Orders -->
+<a class="flex items-center px-md py-md text-on-primary-container hover:bg-primary-container hover:text-on-primary transition-colors duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">shopping_cart</span>
+<span>Purchase Orders</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center px-md py-md text-on-primary-container hover:bg-primary-container hover:text-on-primary transition-colors duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">analytics</span>
+<span>Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center px-md py-md text-on-primary-container hover:bg-primary-container hover:text-on-primary transition-colors duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-md">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto p-md border-t border-on-primary-container/20">
+<div class="flex items-center space-x-sm">
+<img class="w-10 h-10 rounded-full border border-outline-variant" data-alt="A clean professional headshot of a corporate procurement officer in a navy suit, set against a blurred modern office background with high-key neutral lighting. The style is professional, sharp, and confident, adhering to the enterprise modern aesthetic of the ProcureCorp brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPXd-rLyYzW3ngDMMMUujuRg0kjSAJBOiPFKJ-0-Oh_zTnG6bTHVxd8fv-AWVM4X8eHi3ZkgA8NeZiyo_xE7HkZpj4g0Y3c29Xnt0JSL8zX-HuL6sPeFaPsvz82UaezZK_V0GNEbetkBNj3uajGZstmQ76L4J7GF5QInqciq_EvHzdSMiDEq_JdE7wqgGUT1E5SJpq6apILQF9Q-ev_WUknWLhzOEN2sHGZILC2n6p06scbnawkD09DQ">
+<div class="overflow-hidden">
+<p class="text-on-primary font-label-md text-label-md truncate">Admin User</p>
+<p class="text-on-primary-container text-body-sm font-body-sm truncate">procurement@procurecorp.com</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="ml-sidebar-width min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-container-margin">
+<div class="flex items-center gap-xl">
+<span class="font-headline-sm text-headline-sm text-primary">Procurement Management</span>
+<div class="relative w-80">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full pl-10 pr-3 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-body-md font-body-md focus:ring-2 focus:ring-secondary focus:border-secondary" placeholder="Global Search..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-all duration-150">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-secondary transition-all duration-150">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="text-primary font-label-md text-label-md">AU</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="p-container-margin flex-grow bg-background">
+<!-- Breadcrumbs and Action Header -->
+<div class="mb-xl flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<nav aria-label="Breadcrumb" class="flex text-body-sm font-body-sm text-on-surface-variant mb-xs">
+<ol class="flex items-center space-x-2">
+<li><a class="hover:text-secondary" href="#">Dashboard</a></li>
+<li><span class="material-symbols-outlined text-[14px]">chevron_right</span></li>
+<li><a class="hover:text-secondary" href="#">Master Data</a></li>
+<li><span class="material-symbols-outlined text-[14px]">chevron_right</span></li>
+<li class="text-primary font-semibold">Vendors</li>
+</ol>
+</nav>
+<h2 class="text-display-lg font-display-lg text-primary">Master Vendor Management</h2>
+</div>
+<button class="bg-secondary text-on-secondary px-lg py-md rounded-lg flex items-center gap-sm font-label-md text-label-md hover:bg-secondary/90 transition-all shadow-sm active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                    Tambah Vendor
+                </button>
+</div>
+<!-- Dashboard Content: Data Table Area -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<!-- Filters and Search Toolbar -->
+<div class="p-md border-b border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md bg-white">
+<div class="relative w-full md:w-96">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md font-body-md focus:ring-2 focus:ring-secondary focus:border-secondary" placeholder="Search by name, NPWP, or email..." type="text">
+</div>
+<div class="flex items-center gap-sm w-full md:w-auto">
+<button class="flex items-center gap-sm border border-outline-variant px-md py-2 rounded-lg text-body-md font-body-md hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-sm border border-outline-variant px-md py-2 rounded-lg text-body-md font-body-md hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">download</span>
+                            Export
+                        </button>
+</div>
+</div>
+<!-- Vendor Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-outline-variant">
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Nama Vendor</th>
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Alamat</th><th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">NAMA PIC</th>
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">NPWP</th>
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Kontak</th>
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Email</th>
+<th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider text-center">Aksi</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-bold">PT</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">PT Sinar Teknologi Utama</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Technology &amp; Hardware</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant max-w-xs truncate">Jl. Sudirman Kav 45-46, Jakarta Selatan</td><td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">Budi Santoso</td>
+<td class="px-lg py-md font-data-tabular text-data-tabular">01.234.567.8-012.000</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">+62 811 2233 4455</td>
+<td class="px-lg py-md text-body-md font-body-md text-secondary">contact@sinartech.com</td>
+<td class="px-lg py-md">
+<div class="flex items-center justify-center gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" title="Delete">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-bold">CV</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">CV Logistik Mandiri</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Supply Chain</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant max-w-xs truncate">Kawasan Industri Jababeka Phase III, Bekasi</td><td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">Siti Aminah</td>
+<td class="px-lg py-md font-data-tabular text-data-tabular">02.112.334.5-015.000</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">+62 812 3344 5566</td>
+<td class="px-lg py-md text-body-md font-body-md text-secondary">info@logistikmandiri.id</td>
+<td class="px-lg py-md">
+<div class="flex items-center justify-center gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" title="Delete">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-bold">PT</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">PT Konstruksi Jaya Bersama</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Infrastructure</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant max-w-xs truncate">Jl. HR Rasuna Said Blok X-5 No. 13, Jakarta</td><td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">Andi Wijaya</td>
+<td class="px-lg py-md font-data-tabular text-data-tabular">01.998.776.5-011.000</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">+62 813 4455 6677</td>
+<td class="px-lg py-md text-body-md font-body-md text-secondary">support@konstruksijaya.com</td>
+<td class="px-lg py-md">
+<div class="flex items-center justify-center gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" title="Delete">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-bold">FA</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Firma ATK Sejahtera</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Office Supplies</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant max-w-xs truncate">Ruko Maspion IT, Gunung Sahari, Jakarta</td><td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">Dewi Lestari</td>
+<td class="px-lg py-md font-data-tabular text-data-tabular">03.445.667.1-013.000</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">+62 815 5566 7788</td>
+<td class="px-lg py-md text-body-md font-body-md text-secondary">sales@atksejahtera.net</td>
+<td class="px-lg py-md">
+<div class="flex items-center justify-center gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" title="Delete">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded bg-secondary/10 flex items-center justify-center text-secondary font-bold">PT</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">PT Media Digital Kreatif</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Marketing Services</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant max-w-xs truncate">Centennial Tower Lt. 12, Gatot Subroto, Jakarta</td><td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">Rizky Pratama</td>
+<td class="px-lg py-md font-data-tabular text-data-tabular">01.554.443.2-012.000</td>
+<td class="px-lg py-md text-body-md font-body-md text-on-surface-variant">+62 817 6677 8899</td>
+<td class="px-lg py-md text-body-md font-body-md text-secondary">hello@mediadigital.id</td>
+<td class="px-lg py-md">
+<div class="flex items-center justify-center gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" title="Delete">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Pagination -->
+<div class="p-md bg-surface-container border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+<span class="text-body-sm font-body-sm text-on-surface-variant">Showing 5 of 248 vendors</span>
+<div class="flex items-center gap-sm">
+<button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-xs">
+<button class="w-8 h-8 rounded bg-secondary text-on-secondary font-label-md text-label-md">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-variant text-on-surface-variant font-label-md text-label-md">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-variant text-on-surface-variant font-label-md text-label-md">3</button>
+<span class="px-xs text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded hover:bg-surface-variant text-on-surface-variant font-label-md text-label-md">50</button>
+</div>
+<button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Contextual Insight (Bento Element) -->
+<div class="mt-lg grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="bg-primary p-lg rounded-xl flex items-center justify-between shadow-sm overflow-hidden relative group">
+<div class="z-10">
+<p class="text-on-primary-container text-label-sm font-label-sm uppercase opacity-80 mb-xs">Active Vendors</p>
+<h3 class="text-on-primary text-display-lg font-display-lg">248</h3>
+<p class="text-on-tertiary-container text-body-sm font-body-sm mt-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +12 this month
+                        </p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px] text-white">groups</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-lg rounded-xl flex items-center justify-between shadow-sm overflow-hidden relative group">
+<div class="z-10">
+<p class="text-on-surface-variant text-label-sm font-label-sm uppercase opacity-80 mb-xs">Top Category</p>
+<h3 class="text-primary text-display-lg font-display-lg">Logistics</h3>
+<p class="text-on-surface-variant text-body-sm font-body-sm mt-sm">42% of total procurement</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px] text-primary">local_shipping</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-lg rounded-xl flex items-center justify-between shadow-sm overflow-hidden relative group">
+<div class="z-10">
+<p class="text-on-surface-variant text-label-sm font-label-sm uppercase opacity-80 mb-xs">Compliance Rate</p>
+<h3 class="text-primary text-display-lg font-display-lg">94.2%</h3>
+<div class="w-32 h-2 bg-surface-container-high rounded-full mt-sm">
+<div class="bg-on-tertiary-container h-full rounded-full w-[94.2%]"></div>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px] text-primary">verified</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Footer -->
+<footer class="p-container-margin border-t border-outline-variant bg-surface-container-lowest mt-auto">
+<div class="flex justify-between items-center text-body-sm font-body-sm text-on-surface-variant">
+<span>© 2023 ProcureCorp Enterprise Suite. All rights reserved.</span>
+<div class="flex gap-lg">
+<a class="hover:text-secondary" href="#">Security Policy</a>
+<a class="hover:text-secondary" href="#">Service Status</a>
+<a class="hover:text-secondary" href="#">System Logs</a>
+</div>
+</div>
+</footer>
+</div>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Simple search feedback
+        const searchInput = document.querySelectorAll('input[type="text"]');
+        searchInput.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+
+        // Action button tooltips and hover effects logic
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                // Potential for micro-animations or sounds
+            });
+        });
+    </script>
+</body></html>
