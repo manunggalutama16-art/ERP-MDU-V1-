@@ -120,6 +120,8 @@
             to { background-position: 100% 100%; }
         }
     </style>
+  <script type="module" crossorigin src="/assets/index-Bh3FE_sO.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-9S8KGneY.js">
 </head>
 <body class="h-full bg-surface text-on-surface flex flex-col overflow-hidden">
 <!-- Background Layer -->
@@ -150,7 +152,7 @@
 <h2 class="font-headline-sm text-headline-sm text-on-surface">Welcome Back</h2>
 <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Please enter your credentials to access Nexus.</p>
 </div>
-<form class="space-y-md" onsubmit="event.preventDefault();">
+<form class="space-y-md" id="login-form">
 <!-- Email Input -->
 <div class="space-y-xs">
 <label class="font-label-sm text-label-sm text-on-surface-variant" for="email">Email Address</label>
@@ -182,6 +184,8 @@
 <input class="w-4 h-4 text-secondary border-outline-variant rounded focus:ring-secondary focus:ring-offset-0 transition-all cursor-pointer" id="remember" name="remember" type="checkbox">
 <label class="font-body-sm text-body-sm text-on-surface-variant select-none cursor-pointer" for="remember">Remember this device for 30 days</label>
 </div>
+<!-- Error Message -->
+<div class="hidden bg-error-container/30 border border-error/30 text-on-error-container rounded-lg px-md py-sm font-body-sm text-body-sm" id="login-error" role="alert"></div>
 <!-- Action Button -->
 <button class="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-lg rounded-lg shadow-lg shadow-primary/10 transition-all active:scale-[0.98] flex items-center justify-center gap-sm" type="submit">
                         Sign In
@@ -225,7 +229,7 @@
 <a class="font-body-sm text-body-sm hover:text-on-surface transition-colors" href="#">Security Audit</a>
 <span class="font-body-sm text-body-sm opacity-60">© 2024 ProcureCorp Solutions</span>
 </div>
-</footer>
+</footer>
 <script>
         function togglePassword() {
             const input = document.getElementById('password');
