@@ -128,8 +128,9 @@
             border-left: 4px solid #d8e2ff;
         }
     </style>
-  <script type="module" crossorigin src="/assets/supabase-9S8KGneY.js"></script>
-  <script type="module" crossorigin src="/assets/auth-check-D2siwayN.js"></script>
+  <script type="module" crossorigin src="/assets/create-po-ClAJ0Je6.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-DhfIG399.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-check-B8yMbEHk.js">
 </head>
 <body class="bg-background text-on-background font-body-md text-body-md overflow-x-hidden">
 <!-- SideNavBar -->
@@ -403,7 +404,7 @@
 <h4 class="font-label-md text-label-md text-primary uppercase tracking-wider">Catatan Tambahan</h4>
 </div>
 <div class="p-lg">
-<textarea class="w-full px-md py-md border border-outline-variant rounded bg-surface focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all min-h-[100px]" placeholder="Tambahkan catatan internal atau instruksi khusus untuk vendor..."></textarea>
+<textarea class="w-full px-md py-md border border-outline-variant rounded bg-surface focus:border-secondary focus:ring-2 focus:ring-secondary/10 outline-none transition-all min-h-[100px]" id="notes" placeholder="Tambahkan catatan internal atau instruksi khusus untuk vendor..."></textarea>
 </div>
 </div><div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row md:items-center justify-between gap-lg">
 <div class="space-y-sm">
@@ -510,5 +511,5 @@
 
         // Initial calculation
         calculateTotal();
-    </script>
+    </script>
 </body></html>

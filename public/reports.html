@@ -208,7 +208,7 @@
 <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">+12% vs bln lalu</span>
 </div>
 <p class="text-on-surface-variant font-label-md text-label-md">Total Nilai PO</p>
-<h3 class="font-display-lg text-display-lg text-primary mt-xs">Rp 15.420.000.000</h3>
+<h3 class="font-display-lg text-display-lg text-primary mt-xs" id="rep-total">Rp 0</h3>
 </div>
 <!-- Jumlah PO -->
 <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
@@ -219,7 +219,7 @@
 <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">+8 berkas</span>
 </div>
 <p class="text-on-surface-variant font-label-md text-label-md">Jumlah PO Diterbitkan</p>
-<h3 class="font-display-lg text-display-lg text-primary mt-xs">142</h3>
+<h3 class="font-display-lg text-display-lg text-primary mt-xs" id="rep-count">0</h3>
 </div>
 <!-- Vendor Aktif -->
 <div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
@@ -230,7 +230,7 @@
 <span class="text-on-surface-variant font-label-sm text-label-sm opacity-60">Aktif periode ini</span>
 </div>
 <p class="text-on-surface-variant font-label-md text-label-md">Vendor Aktif</p>
-<h3 class="font-display-lg text-display-lg text-primary mt-xs">28</h3>
+<h3 class="font-display-lg text-display-lg text-primary mt-xs" id="rep-vendors">0</h3>
 </div>
 </section>
 <!-- Filtering Section -->
@@ -245,8 +245,8 @@
 </div>
 <div class="space-y-xs">
 <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Proyek</label>
-<select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm text-body-md font-body-md focus:ring-1 focus:ring-secondary focus:border-secondary outline-none appearance-none">
-<option>Semua Proyek</option>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm text-body-md font-body-md focus:ring-1 focus:ring-secondary focus:border-secondary outline-none appearance-none" id="rep-project">
+<option value="">Semua Proyek</option>
 <option>Pembangunan Gedung A</option>
 <option>Infrastruktur IT Fase 2</option>
 <option>Renovasi Kantor Pusat</option>
@@ -254,8 +254,8 @@
 </div>
 <div class="space-y-xs">
 <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Status</label>
-<select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm text-body-md font-body-md focus:ring-1 focus:ring-secondary focus:border-secondary outline-none appearance-none">
-<option>Semua Status</option>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-md py-sm text-body-md font-body-md focus:ring-1 focus:ring-secondary focus:border-secondary outline-none appearance-none" id="rep-status">
+<option value="">Semua Status</option>
 <option>Draft</option>
 <option>Signed</option>
 <option>Completed</option>
@@ -271,7 +271,7 @@
 <div class="p-md border-b border-outline-variant flex justify-between items-center">
 <h4 class="font-label-md text-label-md text-primary uppercase tracking-wider">Daftar Purchase Order</h4>
 <div class="flex items-center gap-sm">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Menampilkan 1-10 dari 142 data</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant" id="rep-label">Memuat data...</span>
 <div class="flex border border-outline-variant rounded-lg overflow-hidden">
 <button class="p-xs hover:bg-surface-container transition-colors border-r border-outline-variant">
 <span class="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -294,7 +294,7 @@
 <th class="px-md py-sm text-center font-label-sm text-label-sm text-on-surface-variant uppercase">Status</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-outline-variant/30">
+<tbody class="divide-y divide-outline-variant/30" id="rep-tbody">
 <!-- Row 1 -->
 <tr class="table-row-hover transition-colors">
 <td class="px-md py-md font-data-tabular text-data-tabular text-primary font-medium">PO-2024-00124</td>
@@ -391,5 +391,7 @@
             });
         }
     </script>
+<script type="module" src="/js/reports-page.js"></script>
+<script type="module" src="/js/nav.js"></script>
 <script type="module" src="/js/auth-check.js"></script>
 </body></html>

@@ -207,7 +207,7 @@
 </nav>
 <h2 class="text-display-lg font-display-lg text-primary">Master Vendor Management</h2>
 </div>
-<button class="bg-secondary text-on-secondary px-lg py-md rounded-lg flex items-center gap-sm font-label-md text-label-md hover:bg-secondary/90 transition-all shadow-sm active:scale-95">
+<button class="bg-secondary text-on-secondary px-lg py-md rounded-lg flex items-center gap-sm font-label-md text-label-md hover:bg-secondary/90 transition-all shadow-sm active:scale-95" id="btn-add-vendor">
 <span class="material-symbols-outlined">add</span>
                     Tambah Vendor
                 </button>
@@ -246,7 +246,7 @@
 <th class="px-lg py-md text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider text-center">Aksi</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-outline-variant">
+<tbody class="divide-y divide-outline-variant" id="vendor-tbody">
 <!-- Row 1 -->
 <tr class="hover:bg-primary/5 transition-colors group">
 <td class="px-lg py-md">
@@ -382,7 +382,7 @@
 </div>
 <!-- Table Footer Pagination -->
 <div class="p-md bg-surface-container border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Showing 5 of 248 vendors</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant" id="vendor-count-label">Memuat data...</span>
 <div class="flex items-center gap-sm">
 <button class="p-2 rounded hover:bg-surface-variant text-on-surface-variant disabled:opacity-50" disabled="">
 <span class="material-symbols-outlined">chevron_left</span>
@@ -405,7 +405,7 @@
 <div class="bg-primary p-lg rounded-xl flex items-center justify-between shadow-sm overflow-hidden relative group">
 <div class="z-10">
 <p class="text-on-primary-container text-label-sm font-label-sm uppercase opacity-80 mb-xs">Active Vendors</p>
-<h3 class="text-on-primary text-display-lg font-display-lg">248</h3>
+<h3 class="text-on-primary text-display-lg font-display-lg" id="vendor-stat-active">0</h3>
 <p class="text-on-tertiary-container text-body-sm font-body-sm mt-sm flex items-center gap-xs">
 <span class="material-symbols-outlined text-[14px]">trending_up</span>
                             +12 this month
@@ -472,5 +472,7 @@
             });
         });
     </script>
+<script type="module" src="/js/vendors-page.js"></script>
+<script type="module" src="/js/nav.js"></script>
 <script type="module" src="/js/auth-check.js"></script>
 </body></html>

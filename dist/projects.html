@@ -113,8 +113,10 @@
             color: #d8e2ff;
         }
     </style>
-  <script type="module" crossorigin src="/assets/supabase-9S8KGneY.js"></script>
-  <script type="module" crossorigin src="/assets/auth-check-D2siwayN.js"></script>
+  <script type="module" crossorigin src="/assets/projects-DchG4x7h.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-DhfIG399.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-check-B8yMbEHk.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-modal-D6Ni7NOP.js">
 </head>
 <body class="bg-background text-on-background antialiased">
 <!-- Global Layout Wrapper -->
@@ -192,7 +194,7 @@
 </nav>
 <h2 class="font-display-lg text-display-lg text-primary tracking-tight">Project Registry</h2>
 </div>
-<button class="inline-flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all shadow-sm">
+<button class="inline-flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-lg font-label-md text-label-md hover:brightness-110 active:scale-95 transition-all shadow-sm" id="btn-add-project">
 <span class="material-symbols-outlined text-[20px]">add_circle</span>
                         Tambah Project
                     </button>
@@ -205,7 +207,7 @@
 </div>
 <div>
 <p class="text-body-sm font-body-sm text-on-surface-variant">Active Projects</p>
-<p class="text-headline-md font-headline-md text-primary">124</p>
+<p class="text-headline-md font-headline-md text-primary" id="project-stat-active">0</p>
 </div>
 </div>
 <div class="bg-white p-md rounded-xl border border-outline-variant flex items-center gap-4">
@@ -261,7 +263,7 @@
 <thead>
 <tr class="bg-surface-container-low"><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Kode Project</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Nama Project</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Tanggal</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">PIC</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Sebelum PPN</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">incl PPN</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Status</th><th class="px-md py-3 text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider text-right">Aksi</th></tr>
 </thead>
-<tbody class="divide-y divide-outline-variant">
+<tbody class="divide-y divide-outline-variant" id="project-tbody">
 <!-- Row 1 -->
 <tr class="hover:bg-primary/5 transition-colors group"><td class="px-md py-4"><span class="code-pill px-3 py-1 rounded font-bold font-data-tabular text-[13px] inline-block tracking-wide">PRJ-2023-001</span></td><td class="px-md py-4 font-label-md text-label-md text-primary">Office Tower Expansion Ph-2</td><td class="px-md py-4 font-body-md text-body-md text-on-surface-variant">12 Jan 2024</td><td class="px-md py-4 font-body-md text-body-md text-primary">Bambang Hermawan</td><td class="px-md py-4 font-data-tabular text-body-md text-primary">Rp 2.500.000.000</td><td class="px-md py-4 font-data-tabular text-body-md text-primary">Rp 2.775.000.000</td><td class="px-md py-4"><span class="inline-flex items-center px-2 py-0.5 rounded-full bg-on-tertiary-container/10 text-on-tertiary-container font-label-sm text-[11px]">ACTIVE</span></td><td class="px-md py-4 text-right"><div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity"><button class="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all"><span class="material-symbols-outlined text-[20px]">edit</span></button><button class="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all"><span class="material-symbols-outlined text-[20px]">delete</span></button></div></td></tr>
 <!-- Row 2 -->
@@ -277,7 +279,7 @@
 </div>
 <!-- Pagination -->
 <div class="px-md py-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-low">
-<span class="text-body-sm font-body-sm text-on-surface-variant">Showing 1 to 5 of 124 projects</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant" id="project-count-label">Memuat data...</span>
 <div class="flex items-center gap-1">
 <button class="p-1 rounded hover:bg-surface-container-highest transition-colors disabled:opacity-30" disabled="">
 <span class="material-symbols-outlined">chevron_left</span>
@@ -332,5 +334,5 @@
         });
     </script>
 
-
+
 </body></html>

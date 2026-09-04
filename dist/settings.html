@@ -134,8 +134,9 @@
             background: #75777d;
         }
     </style>
-  <script type="module" crossorigin src="/assets/supabase-9S8KGneY.js"></script>
-  <script type="module" crossorigin src="/assets/auth-check-D2siwayN.js"></script>
+  <script type="module" crossorigin src="/assets/settings-CIDq2B5p.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-DhfIG399.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-check-B8yMbEHk.js">
 </head>
 <body class="bg-background font-body-md text-on-surface antialiased overflow-hidden h-screen flex">
 <!-- SideNavBar Anchor -->
@@ -220,7 +221,7 @@
 </div>
 <div class="flex gap-3">
 <button class="px-6 py-2.5 bg-surface border border-primary text-primary font-label-md text-label-md rounded hover:bg-surface-container-high transition-colors">Batal</button>
-<button class="px-6 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md rounded shadow-sm hover:brightness-110 transition-all">Simpan Perubahan</button>
+<button class="px-6 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md rounded shadow-sm hover:brightness-110 transition-all" id="btn-save-settings">Simpan Perubahan</button>
 </div>
 </div>
 </div>
@@ -261,11 +262,11 @@
   <div class="space-y-4">
     <div class="flex flex-col gap-1.5">
       <label class="text-label-sm font-label-sm text-on-surface-variant">Nama Perusahaan</label>
-      <input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" placeholder="Masukkan nama perusahaan..." type="text" value="ProcureCorp">
+      <input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" id="set-company" placeholder="Masukkan nama perusahaan..." type="text" value="ProcureCorp">
     </div>
   <div class="flex flex-col gap-1.5">
       <label class="text-label-sm font-label-sm text-on-surface-variant">Alamat Perusahaan</label>
-      <textarea class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" placeholder="Masukkan alamat lengkap perusahaan..." rows="3">Jl. Sudirman No. 45, Kav 12, Jakarta Selatan, Indonesia 12190</textarea>
+      <textarea class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" id="set-address" placeholder="Masukkan alamat lengkap perusahaan..." rows="3">Jl. Sudirman No. 45, Kav 12, Jakarta Selatan, Indonesia 12190</textarea>
     </div></div>
 </div>
 <!-- Authorization Details Section -->
@@ -277,11 +278,11 @@
 <div class="space-y-4">
 <div class="flex flex-col gap-1.5">
 <label class="text-label-sm font-label-sm text-on-surface-variant">Nama Pejabat Penandatangan</label>
-<input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" placeholder="Masukkan nama lengkap..." type="text" value="Bambang Sujatmiko, MBA">
+<input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" id="set-signer" placeholder="Masukkan nama lengkap..." type="text" value="Bambang Sujatmiko, MBA">
 </div>
 <div class="flex flex-col gap-1.5">
 <label class="text-label-sm font-label-sm text-on-surface-variant">Jabatan Resmi</label>
-<input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" placeholder="Masukkan jabatan..." type="text" value="Chief Procurement Officer">
+<input class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" id="set-title" placeholder="Masukkan jabatan..." type="text" value="Chief Procurement Officer">
 </div>
 </div>
 </div>
@@ -294,8 +295,8 @@
 <p class="text-body-sm text-on-surface-variant mb-6">Tentukan posisi blok tanda tangan pada halaman terakhir dokumen.</p><div class="mb-6">
   <label class="text-label-sm font-label-sm text-on-surface-variant block mb-2">Unggah Tanda Tangan (PNG)</label>
   <div class="flex items-center gap-6">
-    <div class="w-32 h-16 bg-surface-container-low border-2 border-dashed border-outline rounded-lg flex items-center justify-center overflow-hidden relative group">
-      <div class="text-on-surface-variant opacity-40">
+    <div class="w-32 h-16 bg-surface-container-low border-2 border-dashed border-outline rounded-lg flex items-center justify-center overflow-hidden relative group" id="sig-upload-box">
+      <div class="text-on-surface-variant opacity-40" id="sig-placeholder">
         <span class="material-symbols-outlined text-3xl">draw</span>
       </div>
       <div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
@@ -339,7 +340,7 @@
   <div class="space-y-4">
     <div class="flex flex-col gap-1.5">
       <label class="text-label-sm font-label-sm text-on-surface-variant">Catatan Kaki / Footnote</label>
-      <textarea class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" placeholder="Contoh: Pembayaran dilakukan maksimal 30 hari setelah invoice diterima..." rows="3">Syarat &amp; Ketentuan:
+      <textarea class="w-full border-outline-variant rounded-lg p-3 text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all" id="set-footer" placeholder="Contoh: Pembayaran dilakukan maksimal 30 hari setelah invoice diterima..." rows="3">Syarat &amp; Ketentuan:
 1. Barang harus sesuai dengan spesifikasi.
 2. Pembayaran dilakukan via transfer bank.</textarea>
     </div>
@@ -528,5 +529,5 @@
 
 
 
-
+
 </body></html>
