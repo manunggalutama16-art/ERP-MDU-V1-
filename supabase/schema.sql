@@ -23,11 +23,35 @@ create table if not exists public.projects (
   code           text not null unique,
   name           text not null,
   date           date default current_date,
-  pic            text default '',
-  value_excl_ppn numeric default 0,
+  pm_name        text default '',          -- Nama Project Manager
+  value_excl_ppn numeric default 0,        -- Nilai sebelum PPN
+  value_incl_ppn numeric default 0,        -- Nilai setelah PPN
+  address        text default '',          -- Alamat project
+  gmap_url       text default '',          -- Link Google Maps
+  top            text default '',          -- Tempo pembayaran (TOP)
   status         text default 'ACTIVE',
   created_at     timestamptz default now()
 );
+
+-- ---------- MIGRASI untuk database yang sudah ada (aman dijalankan berulang) ----------
+-- Menambah kolom baru pada tabel projects.
+alter table public.projects add column if not exists pm_name        text default '';
+alter table public.projects add column if not exists value_incl_ppn numeric default 0;
+alter table public.projects add column if not exists address        text default '';
+alter table public.projects add column if not exists gmap_url       text default '';
+alter table public.projects add column if not exists top            text default '';
+
+-- Pindahkan data kolom lama 'pic' ke 'pm_name' lalu hapus kolom pic.
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'projects' and column_name = 'pic')
+     and exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'projects' and column_name = 'pm_name') then
+    update public.projects set pm_name = pic where pm_name = '' and pic <> '';
+    alter table public.projects drop column pic;
+  end if;
+end $$;
 
 -- ---------- PURCHASE ORDERS ----------
 create table if not exists public.purchase_orders (
@@ -134,14 +158,14 @@ select * from (values
 ) as s(name, category, address, pic_name, npwp, phone, email)
 where not exists (select 1 from public.vendors);
 
-insert into public.projects (code, name, date, pic, value_excl_ppn, status)
+insert into public.projects (code, name, date, pm_name, value_excl_ppn, value_incl_ppn, address, gmap_url, top, status)
 select * from (values
-  ('PRJ-2023-001', 'Office Tower Expansion Ph-2',        '2024-01-12', 'Bambang Hermawan', 2500000000, 'ACTIVE'),
-  ('PRJ-2023-005', 'Data Center Cooling System',         '2024-02-05', 'Siti Aminah',      1200000000, 'ACTIVE'),
-  ('PRJ-2024-012', 'Highway Lighting Rehabilitation',    '2024-03-15', 'Agus Salim',        850000000, 'ON HOLD'),
-  ('PRJ-2024-021', 'Solar Farm Installation Unit 4',     '2024-04-20', '',                 4200000000, 'PENDING'),
-  ('PRJ-2024-025', 'Smart Warehouse Logistix',           '2024-05-10', 'Dewi Lestari',     1850000000, 'ACTIVE')
-) as s(code, name, date, pic, value_excl_ppn, status)
+  ('PRJ-2023-001', 'Office Tower Expansion Ph-2',     '2024-01-12', 'Bambang Hermawan', 2500000000, 2775000000, 'Jl. Sudirman Kav 45-46, Jakarta Selatan', 'https://maps.google.com/?q=Jl.+Sudirman+Jakarta+Selatan', 'Net 30',   'ACTIVE'),
+  ('PRJ-2023-005', 'Data Center Cooling System',      '2024-02-05', 'Siti Aminah',      1200000000, 1332000000, 'Kawasan Industri Jababeka Phase III, Bekasi', 'https://maps.google.com/?q=Kawasan+Industri+Jababeka+Bekasi', 'Net 45',   'ACTIVE'),
+  ('PRJ-2024-012', 'Highway Lighting Rehabilitation', '2024-03-15', 'Agus Salim',        850000000,  943500000, 'Jl. Tol Jagorawi Km 12, Bogor', 'https://maps.google.com/?q=Jl.+Tol+Jagorawi+Bogor', 'Net 30',   'ON HOLD'),
+  ('PRJ-2024-021', 'Solar Farm Installation Unit 4',  '2024-04-20', '',                 4200000000, 4662000000, 'Kawasan PLTS Terapung, Cirata', 'https://maps.google.com/?q=PLTS+Cirata', 'Net 60',   'PENDING'),
+  ('PRJ-2024-025', 'Smart Warehouse Logistix',        '2024-05-10', 'Dewi Lestari',     1850000000, 2053500000, 'Kawasan Industri MM2100, Cikarang', 'https://maps.google.com/?q=MM2100+Cikarang', 'Net 30',   'ACTIVE')
+) as s(code, name, date, pm_name, value_excl_ppn, value_incl_ppn, address, gmap_url, top, status)
 where not exists (select 1 from public.projects);
 
 insert into public.company_settings (id, company_name, company_address, company_npwp, signer_name, signer_position, footer_note)

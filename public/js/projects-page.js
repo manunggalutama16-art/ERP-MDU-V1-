@@ -15,14 +15,19 @@ function statusPill(s) {
 let current = []
 
 function row(p) {
-  const incl = (Number(p.value_excl_ppn) || 0) * 1.11
+  const incl = Number(p.value_incl_ppn) > 0 ? Number(p.value_incl_ppn) : (Number(p.value_excl_ppn) || 0) * 1.11
   return `<tr class="hover:bg-primary/5 transition-colors group">
 <td class="px-md py-4"><span class="code-pill px-3 py-1 rounded font-bold font-data-tabular text-[13px] inline-block tracking-wide">${esc(p.code || '-')}</span></td>
-<td class="px-md py-4 font-label-md text-label-md text-primary">${esc(p.name)}</td>
+<td class="px-md py-4 font-label-md text-label-md text-primary whitespace-nowrap">${esc(p.name)}</td>
 <td class="px-md py-4 font-body-md text-body-md text-on-surface-variant">${fmtDate(p.date)}</td>
-<td class="px-md py-4 font-body-md text-body-md ${p.pic ? 'text-primary' : 'text-on-surface-variant italic'}">${esc(p.pic || 'Not Assigned')}</td>
-<td class="px-md py-4 font-data-tabular text-body-md text-primary">${fmtRp(p.value_excl_ppn)}</td>
-<td class="px-md py-4 font-data-tabular text-body-md text-primary">${fmtRp(incl)}</td>
+<td class="px-md py-4 font-body-md text-body-md ${p.pm_name ? 'text-primary' : 'text-on-surface-variant italic'}">${esc(p.pm_name || 'Not Assigned')}</td>
+<td class="px-md py-4 font-body-md text-body-md text-on-surface-variant max-w-[220px] truncate" title="${esc(p.address || '')}">${esc(p.address || '-')}</td>
+<td class="px-md py-4 text-center">${p.gmap_url
+    ? `<a class="inline-flex items-center gap-xs text-secondary hover:underline" href="${esc(p.gmap_url)}" target="_blank" rel="noopener" title="${esc(p.gmap_url)}"><span class="material-symbols-outlined text-[18px]">map</span>Maps</a>`
+    : '<span class="text-on-surface-variant opacity-50">-</span>'}</td>
+<td class="px-md py-4 font-data-tabular text-body-md text-primary whitespace-nowrap">${fmtRp(p.value_excl_ppn)}</td>
+<td class="px-md py-4 font-data-tabular text-body-md text-primary whitespace-nowrap">${fmtRp(incl)}</td>
+<td class="px-md py-4 font-body-md text-body-md text-on-surface-variant whitespace-nowrap">${esc(p.top || '-')}</td>
 <td class="px-md py-4">${statusPill(p.status)}</td>
 <td class="px-md py-4 text-right"><div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 <button class="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded transition-all" title="Edit" data-edit="${p.id}"><span class="material-symbols-outlined text-[20px]">edit</span></button>
@@ -38,7 +43,7 @@ function render() {
   if (tbody) {
     tbody.innerHTML = current.length
       ? current.map(row).join('')
-      : `<tr><td colspan="8" class="px-md py-xl text-center text-on-surface-variant">Belum ada project. Klik <b>Tambah Project</b> untuk menambah.</td></tr>`
+      : `<tr><td colspan="11" class="px-md py-xl text-center text-on-surface-variant">Belum ada project. Klik <b>Tambah Project</b> untuk menambah.</td></tr>`
   }
   if (label) label.textContent = `Showing ${current.length} of ${current.length} projects`
   if (stat) stat.textContent = current.filter((p) => p.status === 'ACTIVE').length
@@ -60,14 +65,25 @@ function buildFields(initial = {}) {
     { id: 'code', label: 'Kode Project', required: true, placeholder: 'PRJ-2024-001' },
     { id: 'name', label: 'Nama Project', required: true, placeholder: 'Nama project' },
     { id: 'date', label: 'Tanggal', type: 'date' },
-    { id: 'pic', label: 'PIC', placeholder: 'Nama penanggung jawab' },
-    { id: 'value_excl_ppn', label: 'Nilai (sebelum PPN)', type: 'number', placeholder: '100000000' },
+    { id: 'pm_name', label: 'Nama Project Manager', placeholder: 'Nama penanggung jawab' },
+    { id: 'address', label: 'Alamat', type: 'textarea', placeholder: 'Alamat lengkap lokasi project' },
+    { id: 'gmap_url', label: 'Link Google Maps', placeholder: 'https://maps.google.com/?q=...' },
+    { id: 'value_excl_ppn', label: 'Nilai Sebelum PPN', type: 'number', placeholder: '100000000' },
+    { id: 'value_incl_ppn', label: 'Nilai Setelah PPN (11%)', type: 'number', placeholder: 'Otomatis: sebelum PPN x 1.11' },
+    { id: 'top', label: 'Tempo Pembayaran (TOP)', placeholder: 'Net 30, COD, Net 60...' },
     { id: 'status', label: 'Status', type: 'select', options: [
       { value: 'ACTIVE', label: 'ACTIVE' },
       { value: 'ON HOLD', label: 'ON HOLD' },
       { value: 'PENDING', label: 'PENDING' },
     ] },
   ]
+}
+
+// Nilai setelah PPN: pakai input manual bila diisi, jika kosong hitung otomatis (PPN 11%).
+function resolveInclPPN(exclRaw, inclRaw) {
+  const excl = Number(exclRaw) || 0
+  const incl = Number(inclRaw)
+  return incl > 0 ? incl : excl * 1.11
 }
 
 async function openAdd() {
@@ -79,6 +95,7 @@ async function openAdd() {
       const { error } = await addProject({
         ...v,
         value_excl_ppn: Number(v.value_excl_ppn) || 0,
+        value_incl_ppn: resolveInclPPN(v.value_excl_ppn, v.value_incl_ppn),
         date: v.date || new Date().toISOString().slice(0, 10),
       })
       return error ? error.message : null
@@ -100,6 +117,7 @@ async function openEdit(p) {
       const { error } = await updateProject(p.id, {
         ...patch,
         value_excl_ppn: Number(patch.value_excl_ppn) || 0,
+        value_incl_ppn: resolveInclPPN(patch.value_excl_ppn, patch.value_incl_ppn),
         date: patch.date || p.date,
       })
       return error ? error.message : null

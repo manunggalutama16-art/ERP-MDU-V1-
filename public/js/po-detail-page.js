@@ -73,7 +73,7 @@ async function init() {
     body.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md mb-lg">
         ${metaCard('Vendor', vendor.name || '-', vendor.address || '', vendor.email || '')}
-        ${metaCard('Project', project.code ? project.code + ' - ' + project.name : '-', project.pic ? 'PIC: ' + project.pic : '', '')}
+        ${metaCard('Project', project.code ? project.code + ' - ' + project.name : '-', project.pm_name ? 'Project Manager: ' + project.pm_name : '', project.top ? 'TOP: ' + project.top : '')}
         ${metaCard('Term of Payment (TOP)', po.top || '-', '', '')}
         ${metaCard('Delivery Location', po.ship_to || '-', '', '')}
         ${metaCard('Pajak', ppn ? 'PPN 11%' : 'Non PPN', 'Quotation: ' + (po.quotation ? 'Ya, terlampir' : 'Belum'), '')}
