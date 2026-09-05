@@ -211,7 +211,7 @@
     <div class="flex items-center justify-between mb-md">
       <div class="p-sm bg-primary-fixed text-primary rounded-lg flex items-center gap-sm">
         <span class="material-symbols-outlined">folder_open</span>
-        <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">ACTIVE</span>
+        <span class="text-tertiary-fixed-dim font-label-sm text-label-sm" id="md-project-active">ACTIVE</span>
       </div>
       <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">Projects aktif</span>
     </div>
@@ -248,7 +248,7 @@
           <p class="text-body-sm text-on-surface-variant">Kelola daftar vendor/mitra pemasok</p>
         </div>
       </div>
-      <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">5 data</span>
+      <span class="text-tertiary-fixed-dim font-label-sm text-label-sm" id="md-vendor-total">5 data</span>
     </div>
     <div class="p-lg">
       <div class="bg-surface-container rounded-lg border border-outline-variant p-4 mb-lg flex items-center gap-lg">
@@ -258,7 +258,7 @@
           <div class="w-8 h-8 rounded-full bg-tertiary-container/20 border-2 border-white flex items-center justify-center text-on-tertiary-container font-bold text-[10px]">FA</div>
         </div>
         <div>
-          <p class="text-label-md font-label-md text-primary">5 vendor terdaftar</p>
+          <p class="text-label-md font-label-md text-primary" id="md-vendor-desc">5 vendor terdaftar</p>
           <p class="text-body-sm text-on-surface-variant">Termasuk vendor teraktifkan: PT Sinar Teknologi, CV Logistik Mandiri, dan 3 lainnya</p>
         </div>
       </div>
@@ -298,7 +298,7 @@
           <p class="text-body-sm text-on-surface-variant">Kelola daftar project/lokasi kerja</p>
         </div>
       </div>
-      <span class="text-tertiary-fixed-dim font-label-sm text-label-sm">5 data</span>
+      <span class="text-tertiary-fixed-dim font-label-sm text-label-sm" id="md-project-total">5 data</span>
     </div>
     <div class="p-lg">
       <div class="bg-surface-container rounded-lg border border-outline-variant p-4 mb-lg flex items-center gap-lg">
@@ -308,7 +308,7 @@
           <span class="px-2 py-xs bg-on-tertiary-container/10 text-on-tertiary-container rounded text-[10px] font-bold uppercase">PENDING</span>
         </div>
         <div>
-          <p class="text-label-md font-label-md text-primary">5 project terdaftar</p>
+          <p class="text-label-md font-label-md text-primary" id="md-project-desc">5 project terdaftar</p>
           <p class="text-body-sm text-on-surface-variant">Mencakup Office Tower, Data Center, dan proyek infrastruktur lainnya</p>
         </div>
       </div>
@@ -371,6 +371,7 @@
 </div>
 </main>
 
+<script type="module" src="/js/master-data.js"></script>
 <script type="module" src="/js/nav.js"></script>
 <script type="module" src="/js/auth-check.js"></script>
 </body>

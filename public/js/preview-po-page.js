@@ -70,6 +70,8 @@ function docHTML(po, items, st) {
     <div class="font-body-md text-body-md text-primary">
       <p class="font-bold">${esc(project.name || po.ship_to || '-')}</p>
       ${project.code ? `<p>${esc(project.code)}</p>` : ''}
+      ${project.address ? `<p>${esc(project.address)}</p>` : ''}
+      ${project.gmap_url ? `<p class="mt-xs"><a class="text-secondary underline" href="${esc(project.gmap_url)}" target="_blank" rel="noopener">Lihat di Google Maps</a></p>` : ''}
       ${po.ship_to ? `<p>${esc(po.ship_to)}</p>` : ''}
       ${po.top ? `<p class="mt-xs">TOP: ${esc(po.top)}</p>` : ''}
     </div>

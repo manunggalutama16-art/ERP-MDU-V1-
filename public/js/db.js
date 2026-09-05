@@ -68,7 +68,7 @@ export async function deleteProject(id) {
 export async function listPOs() {
   const r = table('purchase_orders')
   if (r.error) return r
-  return r.select('*, vendors(name), projects(name)').order('created_at', { ascending: false })
+  return r.select('*, vendors(name), projects(name, value_excl_ppn, value_incl_ppn)').order('created_at', { ascending: false })
 }
 
 export async function getPO(id) {
