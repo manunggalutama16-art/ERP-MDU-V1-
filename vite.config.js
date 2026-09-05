@@ -18,6 +18,7 @@ export default defineConfig({
         vendors: resolve(__dirname, 'public/vendors.html'),
         reports: resolve(__dirname, 'public/reports.html'),
         settings: resolve(__dirname, 'public/settings.html'),
+      'master-data': resolve(__dirname, 'public/master-data.html'),
       },
     },
   },

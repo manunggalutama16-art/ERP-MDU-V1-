@@ -2,7 +2,7 @@
 // bila href halaman belum di-set langsung di HTML.
 const LINKS = new Map([
   ['Dashboard', 'purchase-orders.html'],
-  ['Master Data', 'vendors.html'],
+  ['Master Data', 'master-data.html'],
   ['Purchase Orders', 'purchase-orders.html'],
   ['Reports', 'reports.html'],
   ['Settings', 'settings.html'],
